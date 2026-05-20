@@ -222,7 +222,7 @@ def api_generate():
 
 @app.route("/api/run_ndsd", methods=["POST"])
 def api_run_ndsd():
-    """Run NDSD algorithm on provided graphs."""
+    """Run NDSD algorithm only (Step 2). Returns mapping for Local Search input."""
     data = request.json
     model = data.get("model", "BA")
     n = int(data.get("n", 20))
@@ -239,30 +239,56 @@ def api_run_ndsd():
     t_ndsd = time.time() - t0
 
     acc_ndsd = compute_accuracy(pred_ndsd, true_map)
-
-    t1 = time.time()
-    pred_ls = local_search_algorithm(G, H, pred_ndsd, max_iter=n)
-    t_ls = time.time() - t1
-
-    acc_ls = compute_accuracy(pred_ls, true_map)
-
-    # Build matching result: which H nodes were correctly identified
     ndsd_correct = {str(h): (pred_ndsd.get(h) == true_map[h]) for h in true_map}
-    ls_correct = {str(h): (pred_ls.get(h) == true_map[h]) for h in true_map}
-
-    # Mapping results: H node -> predicted G node
     ndsd_mapping = {str(k): int(v) for k, v in pred_ndsd.items()}
-    ls_mapping = {str(k): int(v) for k, v in pred_ls.items()}
     true_map_result = {str(k): int(v) for k, v in true_map.items()}
 
     return jsonify({
         "acc_ndsd": round(acc_ndsd * 100, 1),
-        "acc_ls": round(acc_ls * 100, 1),
         "t_ndsd": round(t_ndsd, 2),
-        "t_ls": round(t_ls, 2),
         "ndsd_correct": ndsd_correct,
-        "ls_correct": ls_correct,
         "ndsd_mapping": ndsd_mapping,
+        "true_map": true_map_result,
+        # Echo back params so Local Search endpoint can rebuild graphs
+        "model": model,
+        "n": n,
+        "epsilon": epsilon,
+        "delta": delta,
+    })
+
+
+@app.route("/api/run_local_search", methods=["POST"])
+def api_run_local_search():
+    """Run Local Search on top of a given NDSD mapping (Step 3)."""
+    data = request.json
+    model = data.get("model", "BA")
+    n = int(data.get("n", 20))
+    epsilon = float(data.get("epsilon", 0.0))
+    delta = float(data.get("delta", 0.05))
+    # ndsd_mapping: {str(h_node): g_node} sent from frontend
+    ndsd_mapping_raw = data.get("ndsd_mapping", {})
+
+    n = max(8, min(n, 40))
+
+    G = generate_graph(model, n)
+    H, true_map = create_noisy_subgraph(G, delta=delta, epsilon=epsilon, seed=7)
+
+    # Reconstruct mapping with correct types
+    initial_map = {int(k): int(v) for k, v in ndsd_mapping_raw.items()}
+
+    t1 = time.time()
+    pred_ls = local_search_algorithm(G, H, initial_map, max_iter=n)
+    t_ls = time.time() - t1
+
+    acc_ls = compute_accuracy(pred_ls, true_map)
+    ls_correct = {str(h): (pred_ls.get(h) == true_map[h]) for h in true_map}
+    ls_mapping = {str(k): int(v) for k, v in pred_ls.items()}
+    true_map_result = {str(k): int(v) for k, v in true_map.items()}
+
+    return jsonify({
+        "acc_ls": round(acc_ls * 100, 1),
+        "t_ls": round(t_ls, 2),
+        "ls_correct": ls_correct,
         "ls_mapping": ls_mapping,
         "true_map": true_map_result,
     })

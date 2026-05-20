@@ -1113,9 +1113,13 @@
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
         Tạo đồ thị mới
       </button>
-      <button class="btn btn-primary" onclick="runAlgorithm()" id="btn-run" disabled style="width:100%; justify-content:center;">
+      <button class="btn btn-primary" onclick="runNDSD()" id="btn-run-ndsd" disabled style="width:100%; justify-content:center;">
         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        Chạy NDSD + Local Search
+        Bước 2: Chạy NDSD
+      </button>
+      <button class="btn btn-success" onclick="runLocalSearch()" id="btn-run-ls" disabled style="width:100%; justify-content:center; display:none;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Bước 3: Chạy Local Search
       </button>
 
       <!-- Graph info table -->
@@ -1180,7 +1184,7 @@
   <!-- Algorithm loading -->
   <div class="inline-loading" id="algo-loading">
     <div class="spinner"></div>
-    <span>Đang chạy NDSD → Hungarian Algorithm → Local Search...</span>
+    <span id="algo-loading-msg">Đang chạy NDSD → Hungarian Algorithm...</span>
   </div>
 
   <!-- Results -->
@@ -1735,9 +1739,12 @@ async function generateGraphs() {
 
   const loadEl = document.getElementById('graph-loading-bar');
   loadEl.style.display = 'block';
-  document.getElementById('btn-run').disabled = true;
+  document.getElementById('btn-run-ndsd').disabled = true;
+  document.getElementById('btn-run-ls').style.display = 'none';
+  document.getElementById('btn-run-ls').disabled = true;
   document.getElementById('results-section').style.display = 'none';
   document.getElementById('graph-info-card').style.display = 'none';
+  S.ndsdMapping = null;
   setStep(1);
 
   try {
@@ -1764,9 +1771,9 @@ async function generateGraphs() {
     document.getElementById('tbl-he').textContent = data.e_H;
     document.getElementById('graph-info-card').style.display = 'block';
 
-    document.getElementById('btn-run').disabled = false;
+    document.getElementById('btn-run-ndsd').disabled = false;
     setStep(2);
-    toast('Đồ thị đã tạo. Nhấn "Chạy NDSD + Local Search" để tiếp tục.');
+    toast('Đồ thị đã tạo. Nhấn "Bước 2: Chạy NDSD" để tiếp tục.');
   } catch (e) {
     toast('Lỗi: ' + e.message);
   } finally {
@@ -1774,11 +1781,13 @@ async function generateGraphs() {
   }
 }
 
-// ── RUN ALGORITHM ──
-async function runAlgorithm() {
+// ── STEP 2: RUN NDSD ──
+async function runNDSD() {
+  document.getElementById('algo-loading-msg').textContent = 'Đang chạy NDSD → Tính NDS → Hungarian Algorithm...';
   document.getElementById('algo-loading').classList.add('show');
   document.getElementById('results-section').style.display = 'none';
-  document.getElementById('btn-run').disabled = true;
+  document.getElementById('btn-run-ndsd').disabled = true;
+  document.getElementById('btn-run-ls').style.display = 'none';
   setStep(3);
 
   try {
@@ -1789,36 +1798,92 @@ async function runAlgorithm() {
     });
     const d = await res.json();
 
-    S.ndsdCorrect = d.ndsd_correct; S.lsCorrect = d.ls_correct;
-    S.ndsdMapping = d.ndsd_mapping; S.lsMapping = d.ls_mapping;
+    S.ndsdCorrect = d.ndsd_correct;
+    S.ndsdMapping = d.ndsd_mapping;
+    S.lsCorrect = null; S.lsMapping = null;
 
-    setStep(4);
+    // Show results with NDSD data only
     document.getElementById('results-section').style.display = 'block';
-
     animNum('acc-ndsd', d.acc_ndsd, '%', 700);
-    animNum('acc-ls', d.acc_ls, '%', 900);
-    document.getElementById('acc-time').textContent = `${d.t_ndsd.toFixed(2)}s + ${d.t_ls.toFixed(2)}s`;
-
+    document.getElementById('acc-ls').textContent = '—';
+    document.getElementById('acc-time').textContent = `${d.t_ndsd.toFixed(2)}s`;
+    document.getElementById('acc-time-sub').textContent = 'NDSD (Local Search chưa chạy)';
     setTimeout(() => {
       document.getElementById('bar-ndsd').style.width = d.acc_ndsd + '%';
+      document.getElementById('bar-ls').style.width = '0%';
+    }, 100);
+
+    // Build match grid with NDSD results only
+    buildMatchGridNDSD(d);
+
+    // Color H graph by NDSD correctness
+    const hmap = {};
+    for (const [k, ok] of Object.entries(d.ndsd_correct)) {
+      hmap[k] = ok ? 'correct_ndsd' : 'wrong';
+    }
+    if (S.H) drawGraph('svg-H', S.H, { nodeBaseColor: '#F97316', edgeColor: '#FED7AA', highlightMap: hmap });
+
+    // Show Local Search button
+    document.getElementById('btn-run-ls').style.display = 'flex';
+    document.getElementById('btn-run-ls').disabled = false;
+    document.getElementById('btn-run-ndsd').disabled = false;
+    setStep(3);
+    toast(`NDSD xong: ${d.acc_ndsd}% — Nhấn "Bước 3" để chạy Local Search!`);
+  } catch (e) {
+    toast('Lỗi: ' + e.message);
+    document.getElementById('btn-run-ndsd').disabled = false;
+  } finally {
+    document.getElementById('algo-loading').classList.remove('show');
+  }
+}
+
+// ── STEP 3: RUN LOCAL SEARCH ──
+async function runLocalSearch() {
+  if (!S.ndsdMapping) { toast('Chạy NDSD trước!'); return; }
+  document.getElementById('algo-loading-msg').textContent = 'Đang chạy Local Search → Swap tối ưu cục bộ...';
+  document.getElementById('algo-loading').classList.add('show');
+  document.getElementById('btn-run-ls').disabled = true;
+
+  try {
+    const res = await fetch('/api/run_local_search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: S.model, n: S.n, epsilon: S.eps, delta: S.delta,
+        ndsd_mapping: S.ndsdMapping,
+      }),
+    });
+    const d = await res.json();
+
+    S.lsCorrect = d.ls_correct;
+    S.lsMapping = d.ls_mapping;
+
+    // Update results with LS data
+    animNum('acc-ls', d.acc_ls, '%', 700);
+    document.getElementById('acc-time').textContent +=  ` + ${d.t_ls.toFixed(2)}s`;
+    document.getElementById('acc-time-sub').textContent = 'NDSD + Local Search';
+    setTimeout(() => {
       document.getElementById('bar-ls').style.width = d.acc_ls + '%';
     }, 100);
 
-    buildMatchGrid(d);
+    // Rebuild match grid with both NDSD + LS
+    buildMatchGridFull(d);
 
-    // Re-color H graph
+    // Re-color H graph with LS improvements
     const hmap = {};
-    for (const [k, ok] of Object.entries(d.ndsd_correct)) {
+    for (const [k, ok] of Object.entries(S.ndsdCorrect)) {
       hmap[k] = ok ? 'correct_ndsd' : (d.ls_correct[k] ? 'correct_ls' : 'wrong');
     }
     if (S.H) drawGraph('svg-H', S.H, { nodeBaseColor: '#F97316', edgeColor: '#FED7AA', highlightMap: hmap });
 
-    toast(`Xong: NDSD ${d.acc_ndsd}% → Local Search ${d.acc_ls}%`);
+    setStep(4);
+    document.getElementById('btn-run-ls').disabled = false;
+    toast(`Local Search xong: ${d.acc_ls}% (từ NDSD → Local Search)`);
   } catch (e) {
     toast('Lỗi: ' + e.message);
+    document.getElementById('btn-run-ls').disabled = false;
   } finally {
     document.getElementById('algo-loading').classList.remove('show');
-    document.getElementById('btn-run').disabled = false;
   }
 }
 
@@ -2070,8 +2135,8 @@ async function submitGuess() {
       pct === 100 ? 'Hoàn hảo!' : pct >= 80 ? 'Rất tốt!' : pct >= 50 ? 'Khá ổn!' : 'Cần thêm kinh nghiệm!';
     document.getElementById('score-detail').textContent = `Đúng ${d.correct}/${d.total} node`;
 
-    // Get algo score for comparison
-    const algRes = await fetch('/api/run_ndsd', {
+    // Get algo score for comparison: run NDSD then LS
+    const algNdsd = await fetch('/api/run_ndsd', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -2079,8 +2144,18 @@ async function submitGuess() {
         n: 12, epsilon: parseFloat(document.getElementById('game-eps').value), delta: 0.05,
       }),
     });
-    const alg = await algRes.json();
-    document.getElementById('algo-compare-val').textContent = `NDSD ${alg.acc_ndsd}% → LS ${alg.acc_ls}%`;
+    const alg = await algNdsd.json();
+    const algLs = await fetch('/api/run_local_search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: document.getElementById('game-model').value,
+        n: 12, epsilon: parseFloat(document.getElementById('game-eps').value), delta: 0.05,
+        ndsd_mapping: alg.ndsd_mapping,
+      }),
+    });
+    const algLsData = await algLs.json();
+    document.getElementById('algo-compare-val').textContent = `NDSD ${alg.acc_ndsd}% → LS ${algLsData.acc_ls}%`;
   } catch (e) {
     toast('Lỗi: ' + e.message);
   }
@@ -2100,11 +2175,11 @@ async function showAlgoResult() {
     if (S.gameData) {
       const hmap = {};
       for (const [k, ok] of Object.entries(d.ndsd_correct)) {
-        hmap[k] = ok ? 'correct_ndsd' : (d.ls_correct[k] ? 'correct_ls' : 'wrong');
+        hmap[k] = ok ? 'correct_ndsd' : 'wrong';
       }
       drawGraph('svg-game-H', S.gameData.H, { nodeBaseColor: '#F97316', edgeColor: '#FED7AA', highlightMap: hmap });
     }
-    toast(`Thuật toán: NDSD ${d.acc_ndsd}% → LS ${d.acc_ls}%`);
+    toast(`Thuật toán: NDSD ${d.acc_ndsd}%`);
   } catch (e) {
     toast('Lỗi: ' + e.message);
   }
