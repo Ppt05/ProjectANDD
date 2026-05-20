@@ -1,0 +1,2118 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Phi Ẩn Danh Hóa Mạng Xã Hội — Demo IJCAI-2019</title>
+  <meta name="description" content="Interactive demo: Deanonymizing Social Networks Using Structural Information (IJCAI-2019)" />
+
+  <!-- Fira Code + Fira Sans (Design system recommendation) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- D3.js -->
+  <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <!-- Lucide icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <style>
+    /* ══════════════════════════════════════════
+       DESIGN SYSTEM — Minimalism & Swiss Style
+       Primary:    #3B82F6  (blue)
+       Secondary:  #60A5FA
+       CTA:        #F97316  (orange)
+       Background: #F8FAFC
+       Surface:    #FFFFFF
+       Border:     #E2E8F0
+       Text-1:     #1E293B  (slate-800)
+       Text-2:     #475569  (slate-600)
+       Text-3:     #94A3B8  (slate-400)
+       Danger:     #EF4444
+       Success:    #10B981
+    ══════════════════════════════════════════ */
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary:    #3B82F6;
+      --primary-50: #EFF6FF;
+      --primary-100:#DBEAFE;
+      --primary-600:#2563EB;
+      --orange:     #F97316;
+      --orange-50:  #FFF7ED;
+      --green:      #10B981;
+      --green-50:   #ECFDF5;
+      --red:        #EF4444;
+      --red-50:     #FEF2F2;
+
+      --bg:         #F8FAFC;
+      --surface:    #FFFFFF;
+      --surface-2:  #F1F5F9;
+      --border:     #E2E8F0;
+      --border-2:   #CBD5E1;
+
+      --text-1:     #1E293B;
+      --text-2:     #475569;
+      --text-3:     #94A3B8;
+
+      --radius-sm:  6px;
+      --radius:     10px;
+      --radius-lg:  14px;
+
+      --shadow-sm:  0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+      --shadow:     0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+      --shadow-lg:  0 8px 24px rgba(0,0,0,0.10), 0 4px 8px rgba(0,0,0,0.04);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Fira Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text-1);
+      min-height: 100vh;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .topbar-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+
+    .brand-icon {
+      width: 32px; height: 32px;
+      background: var(--primary);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .brand-icon svg { color: #fff; }
+
+    .brand-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-1);
+      white-space: nowrap;
+    }
+
+    .brand-version {
+      font-size: 11px;
+      font-family: 'Fira Code', monospace;
+      color: var(--text-3);
+    }
+
+    .topbar-divider {
+      width: 1px;
+      height: 24px;
+      background: var(--border);
+      flex-shrink: 0;
+    }
+
+    .topbar-nav {
+      display: flex;
+      gap: 2px;
+      flex: 1;
+      overflow-x: auto;
+    }
+
+    .nav-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 500;
+      font-family: 'Fira Sans', sans-serif;
+      color: var(--text-2);
+      background: none;
+      border: none;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s, color 0.15s;
+    }
+
+    .nav-btn:hover { background: var(--surface-2); color: var(--text-1); }
+
+    .nav-btn.active {
+      background: var(--primary-50);
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .topbar-badge {
+      font-size: 11px;
+      font-family: 'Fira Code', monospace;
+      padding: 3px 10px;
+      background: var(--primary-50);
+      color: var(--primary-600);
+      border: 1px solid var(--primary-100);
+      border-radius: 20px;
+      flex-shrink: 0;
+      margin-left: auto;
+      white-space: nowrap;
+    }
+
+    /* ── PAGE WRAPPER ── */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 28px 24px;
+    }
+
+    /* ── SECTION HEADER ── */
+    .page-header {
+      margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .page-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-1);
+      margin-bottom: 4px;
+    }
+
+    .page-desc {
+      font-size: 14px;
+      color: var(--text-2);
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .card-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title svg { color: var(--text-3); }
+
+    .card-body { padding: 18px; }
+
+    /* ── LABEL ── */
+    .label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-2);
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    /* ── FORM CONTROLS ── */
+    select, input {
+      font-family: 'Fira Sans', sans-serif;
+    }
+
+    .select-field {
+      width: 100%;
+      padding: 8px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border-2);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      color: var(--text-1);
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    .select-field:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+    }
+
+    .range-wrapper { margin-top: 2px; }
+
+    input[type="range"] {
+      width: 100%;
+      -webkit-appearance: none;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      cursor: pointer;
+      margin-top: 6px;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px; height: 16px;
+      background: var(--primary);
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid #fff;
+      box-shadow: 0 1px 4px rgba(59,130,246,0.4);
+      transition: transform 0.15s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+
+    .range-meta {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4px;
+    }
+
+    .range-meta span {
+      font-size: 11px;
+      color: var(--text-3);
+      font-family: 'Fira Code', monospace;
+    }
+
+    .range-val {
+      font-family: 'Fira Code', monospace;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--primary);
+      background: var(--primary-50);
+      padding: 1px 7px;
+      border-radius: 4px;
+    }
+
+    /* ── GRID ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .grid-auto { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+
+    @media (max-width: 900px) {
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 600;
+      font-family: 'Fira Sans', sans-serif;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn svg { flex-shrink: 0; }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary-600);
+      box-shadow: 0 1px 3px rgba(59,130,246,0.3);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-600);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(59,130,246,0.3);
+    }
+
+    .btn-outline {
+      background: var(--surface);
+      color: var(--text-1);
+      border-color: var(--border-2);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-outline:hover { background: var(--surface-2); border-color: var(--border-2); }
+
+    .btn-success {
+      background: var(--green);
+      color: #fff;
+      border-color: #059669;
+      box-shadow: 0 1px 3px rgba(16,185,129,0.3);
+    }
+
+    .btn-success:hover {
+      background: #059669;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(16,185,129,0.3);
+    }
+
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+
+    .btn-group { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+    /* ── STEPPER ── */
+    .stepper {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      margin-bottom: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .step {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-3);
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      transition: all 0.2s;
+    }
+
+    .step:last-child { border-right: none; }
+
+    .step.active {
+      background: var(--primary-50);
+      color: var(--primary-600);
+    }
+
+    .step.done {
+      background: var(--green-50);
+      color: var(--green);
+    }
+
+    .step-num {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: 1.5px solid currentColor;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      font-family: 'Fira Code', monospace;
+      flex-shrink: 0;
+      transition: all 0.2s;
+    }
+
+    .step.done .step-num {
+      background: var(--green);
+      border-color: var(--green);
+      color: #fff;
+    }
+
+    .step.active .step-num {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    /* ── GRAPH PANEL ── */
+    .graph-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .graph-panel-header {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+    }
+
+    .graph-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      font-family: 'Fira Code', monospace;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    .graph-tag.g-tag {
+      background: var(--primary-50);
+      color: var(--primary-600);
+      border: 1px solid var(--primary-100);
+    }
+
+    .graph-tag.h-tag {
+      background: var(--orange-50);
+      color: var(--orange);
+      border: 1px solid #FED7AA;
+    }
+
+    .graph-meta {
+      font-size: 11px;
+      font-family: 'Fira Code', monospace;
+      color: var(--text-3);
+    }
+
+    svg.graph-svg {
+      width: 100%;
+      height: 340px;
+      display: block;
+      background: var(--bg);
+    }
+
+    /* ── METRIC CARDS ── */
+    .metric-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .metric-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+
+    .metric-card.ndsd::before { background: var(--primary); }
+    .metric-card.ls::before { background: var(--orange); }
+    .metric-card.timing::before { background: var(--green); }
+
+    .metric-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-3);
+      margin-bottom: 8px;
+    }
+
+    .metric-val {
+      font-size: 32px;
+      font-weight: 700;
+      font-family: 'Fira Code', monospace;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .metric-val.ndsd { color: var(--primary); }
+    .metric-val.ls   { color: var(--orange); }
+    .metric-val.timing { color: var(--green); font-size: 20px; }
+
+    .metric-sub {
+      font-size: 12px;
+      color: var(--text-3);
+    }
+
+    .progress-bar {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 12px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .progress-fill.ndsd { background: var(--primary); }
+    .progress-fill.ls   { background: var(--orange); }
+
+    /* ── BADGE / TAG ── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: 'Fira Code', monospace;
+    }
+
+    .badge-blue   { background: var(--primary-50);  color: var(--primary-600); }
+    .badge-orange { background: var(--orange-50);   color: var(--orange); }
+    .badge-green  { background: var(--green-50);    color: var(--green); }
+    .badge-red    { background: var(--red-50);      color: var(--red); }
+    .badge-gray   { background: var(--surface-2);   color: var(--text-2); }
+
+    /* ── MATCHING TABLE ── */
+    .match-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 8px;
+    }
+
+    .match-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 10px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      font-size: 12px;
+      font-family: 'Fira Code', monospace;
+      transition: border-color 0.15s;
+    }
+
+    .match-item.correct-ndsd {
+      border-color: #BFDBFE;
+      background: var(--primary-50);
+    }
+
+    .match-item.correct-ls {
+      border-color: #FED7AA;
+      background: var(--orange-50);
+    }
+
+    .match-item.wrong {
+      border-color: #FECACA;
+      background: var(--red-50);
+    }
+
+    /* ── DIVIDER ── */
+    .section-head {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-3);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-head::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── LOADING SPINNER ── */
+    .spinner {
+      width: 20px; height: 20px;
+      border: 2px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-bar {
+      height: 3px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .loading-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--primary-50), var(--primary), var(--primary-50));
+      background-size: 200% 100%;
+      animation: shimmer 1.2s linear infinite;
+      border-radius: 2px;
+    }
+
+    @keyframes shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .inline-loading {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      padding: 16px 18px;
+      background: var(--primary-50);
+      border: 1px solid var(--primary-100);
+      border-radius: var(--radius);
+      font-size: 13px;
+      color: var(--primary-600);
+      margin-bottom: 20px;
+    }
+
+    .inline-loading.show { display: flex; }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 20px; right: 20px;
+      padding: 10px 16px;
+      background: var(--text-1);
+      color: #fff;
+      border-radius: var(--radius);
+      font-size: 13px;
+      z-index: 999;
+      max-width: 300px;
+      transform: translateY(60px);
+      opacity: 0;
+      transition: all 0.25s;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    /* ── GAME ── */
+    .game-intro {
+      padding: 20px;
+      background: var(--primary-50);
+      border: 1px solid var(--primary-100);
+      border-radius: var(--radius-lg);
+      margin-bottom: 20px;
+    }
+
+    .game-intro-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--primary-600);
+      margin-bottom: 6px;
+    }
+
+    .game-intro-desc {
+      font-size: 13px;
+      color: var(--primary-600);
+      opacity: 0.8;
+      line-height: 1.6;
+    }
+
+    .guess-list { display: flex; flex-direction: column; gap: 6px; }
+
+    .guess-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      transition: border-color 0.15s;
+    }
+
+    .guess-row.correct {
+      border-color: #A7F3D0;
+      background: var(--green-50);
+    }
+
+    .guess-row.wrong {
+      border-color: #FECACA;
+      background: var(--red-50);
+    }
+
+    .node-chip {
+      font-size: 11px;
+      font-weight: 700;
+      font-family: 'Fira Code', monospace;
+      padding: 3px 8px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .node-chip.h { background: var(--orange-50); color: var(--orange); border: 1px solid #FED7AA; }
+    .node-chip.g { background: var(--primary-50); color: var(--primary-600); border: 1px solid var(--primary-100); }
+
+    .guess-sel {
+      flex: 1;
+      padding: 5px 8px;
+      border: 1px solid var(--border-2);
+      border-radius: 4px;
+      background: var(--surface);
+      font-size: 12px;
+      font-family: 'Fira Code', monospace;
+      color: var(--text-1);
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    .guess-sel:focus { border-color: var(--primary); }
+
+    .guess-verdict {
+      font-size: 11px;
+      font-weight: 600;
+      font-family: 'Fira Code', monospace;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .guess-verdict.ok  { color: var(--green); }
+    .guess-verdict.bad { color: var(--red); }
+
+    /* ── SCORE BOX ── */
+    .score-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      text-align: center;
+      margin-top: 16px;
+    }
+
+    .score-ring {
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 700;
+      font-family: 'Fira Code', monospace;
+      border: 4px solid var(--border);
+      transition: all 0.4s;
+    }
+
+    .score-ring.great { border-color: var(--green); color: var(--green); background: var(--green-50); }
+    .score-ring.ok    { border-color: var(--orange); color: var(--orange); background: var(--orange-50); }
+    .score-ring.bad   { border-color: var(--red);    color: var(--red);    background: var(--red-50); }
+
+    /* ── THEORY CARDS ── */
+    .theory-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .theory-icon {
+      width: 36px; height: 36px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+      flex-shrink: 0;
+    }
+
+    .theory-icon.blue   { background: var(--primary-50);  color: var(--primary); }
+    .theory-icon.orange { background: var(--orange-50);   color: var(--orange); }
+    .theory-icon.green  { background: var(--green-50);    color: var(--green); }
+    .theory-icon.red    { background: var(--red-50);      color: var(--red); }
+
+    .theory-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-1);
+      margin-bottom: 8px;
+    }
+
+    .theory-text {
+      font-size: 13px;
+      color: var(--text-2);
+      line-height: 1.65;
+    }
+
+    .code-block {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+      font-size: 12px;
+      font-family: 'Fira Code', monospace;
+      color: var(--text-1);
+      margin-top: 12px;
+      white-space: pre;
+      overflow-x: auto;
+      line-height: 1.6;
+    }
+
+    /* ── TABLE ── */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .data-table th {
+      text-align: left;
+      padding: 8px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-3);
+      border-bottom: 1px solid var(--border);
+      background: var(--surface-2);
+    }
+
+    .data-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-1);
+      vertical-align: middle;
+    }
+
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table tr:hover td { background: var(--surface-2); }
+
+    /* ── CHART ── */
+    .chart-wrap {
+      position: relative;
+      height: 320px;
+      padding: 4px;
+    }
+
+    /* ── LEGEND ── */
+    .legend {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-2);
+    }
+
+    .legend-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ── CHART LOADING OVERLAY ── */
+    .chart-loading-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(248,250,252,0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      border-radius: var(--radius-lg);
+      font-size: 13px;
+      color: var(--text-2);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+    }
+
+    .chart-loading-overlay.show {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
+
+    /* ── FOOTER ── */
+    .footer {
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      padding: 16px 24px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-3);
+      line-height: 1.8;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      .container { padding: 16px; }
+      .topbar-inner { padding: 0 16px; }
+      .topbar-badge { display: none; }
+      .step span { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════ TOPBAR ══════════ -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a href="#" class="brand">
+      <div class="brand-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+      </div>
+      <div>
+        <div class="brand-name">Deanonymization Demo</div>
+        <div class="brand-version">IJCAI-2019 · NDSD + Local Search</div>
+      </div>
+    </a>
+    <div class="topbar-divider"></div>
+    <nav class="topbar-nav">
+      <button class="nav-btn active" id="nav-demo" onclick="switchPage('demo', this)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Demo thuật toán
+      </button>
+      <button class="nav-btn" id="nav-game" onclick="switchPage('game', this)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/><circle cx="12" cy="12" r="10"/></svg>
+        Thử sức
+      </button>
+      <button class="nav-btn" id="nav-chart" onclick="switchPage('chart', this)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Biểu đồ
+      </button>
+      <button class="nav-btn" id="nav-theory" onclick="switchPage('theory', this)">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+        Lý thuyết
+      </button>
+    </nav>
+    <div class="topbar-badge">An Ninh Di Động · Midterm</div>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════
+     PAGE 1: DEMO
+══════════════════════════════════════════ -->
+<div id="page-demo" class="page active">
+<div class="container">
+
+  <!-- Page header -->
+  <div class="page-header">
+    <div class="page-title">Demo thuật toán phi ẩn danh hóa</div>
+    <div class="page-desc">Tái hiện bài báo <em>"Deanonymizing Social Networks Using Structural Information"</em> — Caragiannis & Tsitsoka, IJCAI-2019</div>
+  </div>
+
+  <!-- Stepper -->
+  <div class="stepper">
+    <div class="step active" id="step1">
+      <div class="step-num">1</div>
+      <span>Cấu hình & tạo đồ thị</span>
+    </div>
+    <div class="step" id="step2">
+      <div class="step-num">2</div>
+      <span>Chạy NDSD</span>
+    </div>
+    <div class="step" id="step3">
+      <div class="step-num">3</div>
+      <span>Local Search</span>
+    </div>
+    <div class="step" id="step4">
+      <div class="step-num">4</div>
+      <span>Xem kết quả</span>
+    </div>
+  </div>
+
+  <!-- Layout: Controls + Graphs -->
+  <div style="display:grid; grid-template-columns:280px 1fr; gap:16px; margin-bottom:20px;">
+
+    <!-- LEFT: Controls -->
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+            Tham số
+          </div>
+        </div>
+        <div class="card-body" style="display:flex; flex-direction:column; gap:14px;">
+          <div>
+            <label class="label" for="ctrl-model">Mô hình đồ thị</label>
+            <select id="ctrl-model" class="select-field">
+              <option value="BA">Barabási-Albert (BA)</option>
+              <option value="HK">Holme-Kim (HK)</option>
+              <option value="ER">Erdős-Rényi (ER)</option>
+              <option value="WS">Watts-Strogatz (WS)</option>
+            </select>
+          </div>
+          <div>
+            <label class="label">
+              Số node (n)
+              <span class="range-val" id="lbl-n" style="margin-left:6px;">20</span>
+            </label>
+            <div class="range-wrapper">
+              <input type="range" id="ctrl-n" min="10" max="35" value="20"
+                     oninput="document.getElementById('lbl-n').textContent=this.value" />
+              <div class="range-meta"><span>10</span><span>35</span></div>
+            </div>
+          </div>
+          <div>
+            <label class="label">
+              Nhiễu cạnh ε
+              <span class="range-val" id="lbl-eps" style="margin-left:6px;">0%</span>
+            </label>
+            <div class="range-wrapper">
+              <input type="range" id="ctrl-eps" min="0" max="20" value="0" step="5"
+                     oninput="document.getElementById('lbl-eps').textContent=this.value+'%'" />
+              <div class="range-meta"><span>0%</span><span>20%</span></div>
+            </div>
+          </div>
+          <div>
+            <label class="label">
+              Xóa node δ
+              <span class="range-val" id="lbl-delta" style="margin-left:6px;">5%</span>
+            </label>
+            <div class="range-wrapper">
+              <input type="range" id="ctrl-delta" min="0" max="15" value="5" step="5"
+                     oninput="document.getElementById('lbl-delta').textContent=this.value+'%'" />
+              <div class="range-meta"><span>0%</span><span>15%</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <button class="btn btn-outline" onclick="generateGraphs()" id="btn-gen" style="width:100%; justify-content:center;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+        Tạo đồ thị mới
+      </button>
+      <button class="btn btn-primary" onclick="runAlgorithm()" id="btn-run" disabled style="width:100%; justify-content:center;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Chạy NDSD + Local Search
+      </button>
+
+      <!-- Graph info table -->
+      <div class="card" id="graph-info-card" style="display:none;">
+        <div class="card-header">
+          <div class="card-title">Thông tin đồ thị</div>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr><th>Đồ thị</th><th>Nodes</th><th>Edges</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><span class="badge badge-blue">G</span></td>
+              <td id="tbl-gn">—</td><td id="tbl-ge">—</td>
+            </tr>
+            <tr>
+              <td><span class="badge badge-orange">H</span></td>
+              <td id="tbl-hn">—</td><td id="tbl-he">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RIGHT: Graphs -->
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      <!-- Loading bar for graphs -->
+      <div id="graph-loading-bar" style="display:none;">
+        <div class="loading-bar"><div class="loading-bar-fill" style="width:100%"></div></div>
+        <div style="font-size:12px; color:var(--text-3); text-align:center; margin-top:-12px;">Đang tạo đồ thị...</div>
+      </div>
+
+      <div class="grid-2">
+        <!-- Graph G -->
+        <div class="graph-panel">
+          <div class="graph-panel-header">
+            <span class="graph-tag g-tag">
+              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
+              G — Eponymous
+            </span>
+            <span class="graph-meta" id="info-G">—</span>
+          </div>
+          <svg id="svg-G" class="graph-svg"></svg>
+        </div>
+
+        <!-- Graph H -->
+        <div class="graph-panel">
+          <div class="graph-panel-header">
+            <span class="graph-tag h-tag">
+              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
+              H — Anonymous
+            </span>
+            <span class="graph-meta" id="info-H">—</span>
+          </div>
+          <svg id="svg-H" class="graph-svg"></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Algorithm loading -->
+  <div class="inline-loading" id="algo-loading">
+    <div class="spinner"></div>
+    <span>Đang chạy NDSD → Hungarian Algorithm → Local Search...</span>
+  </div>
+
+  <!-- Results -->
+  <div id="results-section" style="display:none;">
+    <div class="section-head">Kết quả phi ẩn danh hóa</div>
+
+    <!-- Metrics row -->
+    <div class="grid-3" style="margin-bottom:16px;">
+      <div class="metric-card ndsd">
+        <div class="metric-label">NDSD Accuracy</div>
+        <div class="metric-val ndsd" id="acc-ndsd">—</div>
+        <div class="metric-sub">Hungarian Algorithm · O(n⁴)</div>
+        <div class="progress-bar">
+          <div class="progress-fill ndsd" id="bar-ndsd" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="metric-card ls">
+        <div class="metric-label">Local Search Accuracy</div>
+        <div class="metric-val ls" id="acc-ls">—</div>
+        <div class="metric-sub">Sau cải thiện NDSD · O(n⁵)</div>
+        <div class="progress-bar">
+          <div class="progress-fill ls" id="bar-ls" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="metric-card timing">
+        <div class="metric-label">Thời gian thực thi</div>
+        <div class="metric-val timing" id="acc-time">—</div>
+        <div class="metric-sub" id="acc-time-sub">NDSD + Local Search</div>
+      </div>
+    </div>
+
+    <!-- Matching table -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="m15 2-3 3-3-3"/><path d="m15 22-3-3-3 3"/></svg>
+          Mapping: H node → G node
+        </div>
+        <div class="legend">
+          <div class="legend-item">
+            <div class="legend-dot" style="background:var(--primary)"></div>
+            Đúng (NDSD)
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background:var(--orange)"></div>
+            Đúng (sau LS)
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background:var(--red)"></div>
+            Sai
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="match-grid" id="match-grid"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PAGE 2: GAME
+══════════════════════════════════════════ -->
+<div id="page-game" class="page">
+<div class="container">
+
+  <div class="page-header">
+    <div class="page-title">Thử sức — Bạn có giỏi hơn thuật toán?</div>
+    <div class="page-desc">Nhìn vào 2 đồ thị và tự ghép node H → G. So sánh kết quả với NDSD.</div>
+  </div>
+
+  <!-- Game controls -->
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-body">
+      <div class="grid-auto" style="align-items:end;">
+        <div>
+          <label class="label" for="game-model">Mô hình</label>
+          <select id="game-model" class="select-field">
+            <option value="BA">Barabási-Albert — Dễ nhận ra</option>
+            <option value="HK">Holme-Kim — Trung bình</option>
+            <option value="ER">Erdős-Rényi — Khó</option>
+            <option value="WS">Watts-Strogatz — Khó</option>
+          </select>
+        </div>
+        <div>
+          <label class="label" for="game-eps">Mức nhiễu</label>
+          <select id="game-eps" class="select-field">
+            <option value="0">0% — Không nhiễu</option>
+            <option value="0.05">5% — Nhẹ</option>
+            <option value="0.1">10% — Ngưỡng chịu đựng</option>
+          </select>
+        </div>
+        <div style="padding-bottom:1px;">
+          <button class="btn btn-primary" onclick="startGame()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Bắt đầu game
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="game-area" style="display:none;">
+    <div class="grid-2" style="margin-bottom:16px;">
+      <!-- Graph G -->
+      <div class="graph-panel">
+        <div class="graph-panel-header">
+          <span class="graph-tag g-tag">G — Đồ thị có danh tính</span>
+          <span class="graph-meta">Nhìn cấu trúc để đoán</span>
+        </div>
+        <svg id="svg-game-G" class="graph-svg" style="height:280px; background:var(--bg);"></svg>
+      </div>
+      <!-- Graph H -->
+      <div class="graph-panel">
+        <div class="graph-panel-header">
+          <span class="graph-tag h-tag">H — Đồ thị ẩn danh</span>
+          <span class="graph-meta">Node nào khớp với G?</span>
+        </div>
+        <svg id="svg-game-H" class="graph-svg" style="height:280px; background:var(--bg);"></svg>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <!-- Guess panel -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Ghép node H → G</div>
+          <span class="badge badge-gray" id="game-progress">0/0 đã ghép</span>
+        </div>
+        <div class="card-body">
+          <div class="guess-list" id="game-guesses"></div>
+          <div class="btn-group" style="margin-top:14px;">
+            <button class="btn btn-success" onclick="submitGuess()" id="btn-submit">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+              Kiểm tra đáp án
+            </button>
+            <button class="btn btn-outline" onclick="showAlgoResult()" id="btn-algo-reveal" style="display:none;">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m12 8 4 4-4 4"/><path d="m8 12h7"/></svg>
+              Xem kết quả thuật toán
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Score + Algo compare -->
+      <div>
+        <div id="score-area" style="display:none;">
+          <div class="score-box">
+            <div class="score-ring" id="score-ring">—%</div>
+            <div style="font-size:18px; font-weight:700; color:var(--text-1); margin-bottom:4px;" id="score-msg"></div>
+            <div style="font-size:13px; color:var(--text-2); margin-bottom:16px;" id="score-detail"></div>
+            <div style="padding:12px; background:var(--primary-50); border:1px solid var(--primary-100); border-radius:var(--radius-sm); font-size:13px; color:var(--primary-600);">
+              Thuật toán đạt:
+              <strong id="algo-compare-val" style="font-family:'Fira Code',monospace;">—</strong>
+            </div>
+          </div>
+        </div>
+        <div id="game-placeholder-score" style="padding:40px; text-align:center; color:var(--text-3);">
+          <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 12px; display:block;"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+          Điền đáp án rồi nhấn "Kiểm tra"
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="game-placeholder" style="text-align:center; padding:80px 24px; color:var(--text-3);">
+    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto 16px; display:block;"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+    <div style="font-size:15px; font-weight:500; margin-bottom:8px;">Nhấn "Bắt đầu game" để thử sức</div>
+    <div style="font-size:13px;">Xem liệu bạn có thể ghép đồ thị tốt hơn thuật toán không</div>
+  </div>
+
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PAGE 3: CHART
+══════════════════════════════════════════ -->
+<div id="page-chart" class="page">
+<div class="container">
+
+  <div class="page-header">
+    <div class="page-title">Biểu đồ Accuracy vs Mức nhiễu</div>
+    <div class="page-desc">So sánh NDSD và Local Search trên các mô hình đồ thị khác nhau</div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-header">
+      <div class="card-title">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+        Accuracy theo ε — Mô hình:
+        <select id="chart-model" onchange="loadChart()" style="padding:4px 8px; background:var(--surface-2); border:1px solid var(--border-2); border-radius:4px; font-size:12px; font-family:'Fira Code',monospace; color:var(--text-1); cursor:pointer; outline:none;">
+          <option value="BA">Barabási-Albert (BA)</option>
+          <option value="HK">Holme-Kim (HK)</option>
+          <option value="ER">Erdős-Rényi (ER)</option>
+          <option value="WS">Watts-Strogatz (WS)</option>
+        </select>
+      </div>
+      <div class="legend">
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--primary)"></div>NDSD
+        </div>
+        <div class="legend-item">
+          <div class="legend-dot" style="background:var(--orange)"></div>Local Search
+        </div>
+      </div>
+    </div>
+    <div class="card-body" style="position:relative;">
+      <div class="chart-loading-overlay" id="chart-loading">
+        <div class="spinner"></div>
+        <span id="chart-loading-msg">Đang tính toán...</span>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="accuracy-chart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Model comparison table -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">So sánh mô hình (ε = 10%)</div>
+      <span class="badge badge-gray">Ngưỡng quan trọng nhất</span>
+    </div>
+    <div class="card-body">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Mô hình</th>
+            <th>Phân phối bậc</th>
+            <th>Phù hợp MXH?</th>
+            <th>NDSD (ε=10%)</th>
+            <th>Local Search (ε=10%)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Barabási-Albert</strong></td>
+            <td><span class="badge badge-blue">Power-law</span></td>
+            <td><span class="badge badge-green">Rất tốt</span></td>
+            <td style="font-family:'Fira Code',monospace; color:var(--primary);">~65%</td>
+            <td style="font-family:'Fira Code',monospace; color:var(--orange);">~80%</td>
+          </tr>
+          <tr>
+            <td><strong>Holme-Kim</strong></td>
+            <td><span class="badge badge-blue">Power-law + Clustering</span></td>
+            <td><span class="badge badge-green">Rất tốt</span></td>
+            <td style="font-family:'Fira Code',monospace; color:var(--primary);">~60%</td>
+            <td style="font-family:'Fira Code',monospace; color:var(--orange);">~75%</td>
+          </tr>
+          <tr>
+            <td><strong>Erdős-Rényi</strong></td>
+            <td><span class="badge badge-gray">Poisson (đều)</span></td>
+            <td><span class="badge badge-red">Không phù hợp</span></td>
+            <td style="font-family:'Fira Code',monospace; color:var(--text-3);">~15%</td>
+            <td style="font-family:'Fira Code',monospace; color:var(--text-3);">~18%</td>
+          </tr>
+          <tr>
+            <td><strong>Watts-Strogatz</strong></td>
+            <td><span class="badge badge-gray">Đều (small-world)</span></td>
+            <td><span class="badge badge-red">Không phù hợp</span></td>
+            <td style="font-family:'Fira Code',monospace; color:var(--text-3);">~5%</td>
+            <td style="font-family:'Fira Code',monospace; color:var(--text-3);">~6%</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PAGE 4: THEORY
+══════════════════════════════════════════ -->
+<div id="page-theory" class="page">
+<div class="container">
+
+  <div class="page-header">
+    <div class="page-title">Lý thuyết & Nền tảng</div>
+    <div class="page-desc">Caragiannis & Tsitsoka — IJCAI-2019 · Đại học Patras, Hy Lạp</div>
+  </div>
+
+  <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:16px;">
+
+    <div class="theory-card">
+      <div class="theory-icon blue">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      </div>
+      <div class="theory-title">Bài toán đặt ra</div>
+      <div class="theory-text">
+        Cho G (mạng có danh tính) và H (noisy subgraph ẩn danh). Tìm ánh xạ
+        <code style="font-family:'Fira Code',monospace; font-size:12px; background:var(--surface-2); padding:1px 5px; border-radius:3px;">σ: V(H) → V(G)</code>
+        tối đa hóa số cạnh được khớp đúng.
+      </div>
+      <div class="code-block">max |{(u,v) ∈ E(H) :
+     (σ(u), σ(v)) ∈ E(G)}|
+
+H = noisy subgraph của G
+  • Xóa δ% node
+  • Đổi ε% cạnh (thêm/bớt)</div>
+    </div>
+
+    <div class="theory-card">
+      <div class="theory-icon blue">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+      </div>
+      <div class="theory-title">Thuật toán NDSD · O(n⁴)</div>
+      <div class="theory-text">
+        Mỗi node có "chữ ký cấu trúc" NDS(v) — chuỗi bậc láng giềng sắp giảm dần.
+        Xây cost matrix và giải bằng Hungarian Algorithm.
+      </div>
+      <div class="code-block">1. NDS(v) = sorted(deg(u)
+        for u in N(v), desc)
+2. cost[i][j] = L1(NDS_H[i],
+                   NDS_G[j])
+3. Hungarian → min cost matching</div>
+    </div>
+
+    <div class="theory-card">
+      <div class="theory-icon orange">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.38"/></svg>
+      </div>
+      <div class="theory-title">Thuật toán Local Search · O(n⁵)</div>
+      <div class="theory-text">
+        Bắt đầu từ kết quả NDSD. Thử swap từng cặp node, chấp nhận nếu
+        edge overlap score tăng. Dừng khi đạt local optimum.
+      </div>
+      <div class="code-block">σ₀ = NDSD result
+score = edge_overlap(G, H, σ)
+repeat:
+  for all pairs (u,v) in H:
+    swap σ(u) ↔ σ(v)
+    if score ↑: keep swap
+until no improvement</div>
+    </div>
+
+    <div class="theory-card">
+      <div class="theory-icon green">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div class="theory-title">Ứng dụng An Ninh Di Động</div>
+      <div class="theory-text">
+        App với quyền READ_CONTACTS xây được đồ thị quan hệ G.
+        So với mạng ẩn danh H (dark web/forum) → de-anonymize người dùng.
+      </div>
+      <div class="code-block">Call logs + Danh bạ → G
+Bluetooth proximity → G'
+Wi-Fi co-location  → G''
+→ Match với H ẩn danh
+→ Lộ danh tính người dùng</div>
+    </div>
+
+    <div class="theory-card">
+      <div class="theory-icon green">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <div class="theory-title">Cơ chế phòng thủ</div>
+      <div class="theory-text">
+        Graph Perturbation (ε &gt; 10%), Differential Privacy (Laplace/Gaussian),
+        k-Anonymity cho graphs. Trade-off: privacy ↑ ↔ utility ↓.
+      </div>
+      <div class="code-block">ε-DP: P[M(G) ∈ S]
+     ≤ eᵉ · P[M(G') ∈ S]
+
+Graph Perturbation:
+  Thêm nhiễu ε > 10%
+  → phá vỡ de-anonymization</div>
+    </div>
+
+    <div class="theory-card">
+      <div class="theory-icon orange">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="12" x2="2" y2="12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/><line x1="6" y1="16" x2="6.01" y2="16"/><line x1="10" y1="16" x2="10.01" y2="16"/></svg>
+      </div>
+      <div class="theory-title">Hướng mở rộng</div>
+      <div class="theory-text">
+        GNN-based (GraphSAGE, GAT) học chữ ký cấu trúc tốt hơn NDS. 
+        Mở rộng cho directed/weighted graphs. Kết hợp semantic features.
+      </div>
+      <div class="code-block">GNN: O(n·d) thay vì O(n⁴)
+→ Scale tốt với mạng lớn
+
+Multi-graph matching:
+→ Xử lý khi H không ⊆ G
+
+Semantic features:
+→ Text + timestamp + location</div>
+    </div>
+
+  </div>
+
+</div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div style="font-weight:600; color:var(--text-2);">Phi Ẩn Danh Hóa Mạng Xã Hội — Interactive Demo</div>
+  <div>Tái hiện bài báo: <em>"Deanonymizing Social Networks Using Structural Information"</em> · Caragiannis & Tsitsoka, IJCAI-2019</div>
+  <div>Môn: An Ninh Di Động</div>
+</footer>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ══════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════ -->
+<script>
+// ── STATE ──
+const S = {
+  G: null, H: null, trueMap: null,
+  model: 'BA', n: 20, eps: 0, delta: 0.05,
+  ndsdCorrect: null, lsCorrect: null,
+  ndsdMapping: null, lsMapping: null,
+  chartInst: null,
+  gameData: null, gameGuesses: {},
+};
+
+// ── PAGE SWITCH ──
+function switchPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  btn.classList.add('active');
+  if (name === 'chart') loadChart();
+}
+
+// ── TOAST ──
+function toast(msg, dur = 3000) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), dur);
+}
+
+// ── STEPPER ──
+function setStep(n) {
+  for (let i = 1; i <= 4; i++) {
+    const s = document.getElementById('step' + i);
+    s.classList.remove('active', 'done');
+    if (i < n) s.classList.add('done');
+    else if (i === n) s.classList.add('active');
+  }
+}
+
+// ── D3 GRAPH ──
+function drawGraph(svgId, data, opts = {}) {
+  const svg = d3.select('#' + svgId);
+  svg.selectAll('*').remove();
+
+  const el = document.getElementById(svgId);
+  const W = el.clientWidth || 500;
+  const H = el.clientHeight || 340;
+  const pad = 36;
+
+  const xScale = d3.scaleLinear().domain([-1.3, 1.3]).range([pad, W - pad]);
+  const yScale = d3.scaleLinear().domain([-1.3, 1.3]).range([pad, H - pad]);
+
+  const {
+    nodeBaseColor = '#3B82F6',
+    edgeColor = '#E2E8F0',
+    highlightMap = null,
+  } = opts;
+
+  const byId = {};
+  const scaled = data.nodes.map(n => {
+    const sx = xScale(n.x), sy = yScale(n.y);
+    byId[n.id] = { ...n, sx, sy };
+    return byId[n.id];
+  });
+
+  // Defs: clip + glow
+  const defs = svg.append('defs');
+  const glow = defs.append('filter').attr('id', svgId + 'G').attr('x', '-50%').attr('y', '-50%').attr('width', '200%').attr('height', '200%');
+  glow.append('feGaussianBlur').attr('in', 'SourceGraphic').attr('stdDeviation', '2').attr('result', 'blur');
+  const merge = glow.append('feMerge');
+  merge.append('feMergeNode').attr('in', 'blur');
+  merge.append('feMergeNode').attr('in', 'SourceGraphic');
+
+  const g = svg.append('g');
+
+  // Edges
+  g.selectAll('.e')
+    .data(data.edges)
+    .join('line')
+    .attr('class', 'e')
+    .attr('stroke', edgeColor)
+    .attr('stroke-width', 1.5)
+    .attr('x1', d => byId[d.source]?.sx ?? 0)
+    .attr('y1', d => byId[d.source]?.sy ?? 0)
+    .attr('x2', d => byId[d.target]?.sx ?? 0)
+    .attr('y2', d => byId[d.target]?.sy ?? 0);
+
+  // Nodes
+  const ng = g.selectAll('.n')
+    .data(scaled)
+    .join('g')
+    .attr('class', 'n')
+    .attr('transform', d => `translate(${d.sx},${d.sy})`)
+    .style('cursor', 'default');
+
+  ng.each(function(d) {
+    const el = d3.select(this);
+    const key = String(d.id);
+    const r = 9 + Math.min(d.degree * 1.2, 10);
+
+    let fill = nodeBaseColor;
+    let stroke = 'none';
+    let sw = 0;
+
+    if (highlightMap) {
+      const st = highlightMap[key];
+      if (st === 'correct_ndsd')  { fill = '#3B82F6'; stroke = '#1D4ED8'; sw = 1.5; }
+      else if (st === 'correct_ls') { fill = '#F97316'; stroke = '#EA580C'; sw = 1.5; }
+      else if (st === 'wrong')    { fill = '#EF4444'; stroke = '#DC2626'; sw = 1.5; }
+    }
+
+    // Shadow for hub nodes
+    if (d.degree >= 4) {
+      el.append('circle').attr('r', r + 3)
+        .attr('fill', fill).attr('opacity', 0.15);
+    }
+
+    el.append('circle')
+      .attr('r', r)
+      .attr('fill', fill)
+      .attr('stroke', stroke)
+      .attr('stroke-width', sw)
+      .attr('fill-opacity', 0.9);
+
+    // Label — only if node is big enough
+    if (r >= 10) {
+      el.append('text')
+        .attr('text-anchor', 'middle').attr('dy', '0.35em')
+        .attr('font-size', '10px').attr('font-weight', '700')
+        .attr('font-family', 'Fira Code, monospace')
+        .attr('fill', '#fff')
+        .attr('pointer-events', 'none')
+        .text(d.label);
+    }
+  });
+}
+
+// ── GENERATE ──
+async function generateGraphs() {
+  const model = document.getElementById('ctrl-model').value;
+  const n = +document.getElementById('ctrl-n').value;
+  const eps = +document.getElementById('ctrl-eps').value / 100;
+  const delta = +document.getElementById('ctrl-delta').value / 100;
+
+  const loadEl = document.getElementById('graph-loading-bar');
+  loadEl.style.display = 'block';
+  document.getElementById('btn-run').disabled = true;
+  document.getElementById('results-section').style.display = 'none';
+  document.getElementById('graph-info-card').style.display = 'none';
+  setStep(1);
+
+  try {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model, n, epsilon: eps, delta }),
+    });
+    const data = await res.json();
+
+    S.G = data.G; S.H = data.H;
+    S.trueMap = data.true_map;
+    S.model = model; S.n = n; S.eps = eps; S.delta = delta;
+
+    drawGraph('svg-G', data.G, { nodeBaseColor: '#3B82F6', edgeColor: '#BFDBFE' });
+    drawGraph('svg-H', data.H, { nodeBaseColor: '#F97316', edgeColor: '#FED7AA' });
+
+    document.getElementById('info-G').textContent = `${data.n_G}v · ${data.e_G}e`;
+    document.getElementById('info-H').textContent = `${data.n_H}v · ${data.e_H}e · ε=${Math.round(eps*100)}%`;
+
+    document.getElementById('tbl-gn').textContent = data.n_G;
+    document.getElementById('tbl-ge').textContent = data.e_G;
+    document.getElementById('tbl-hn').textContent = data.n_H;
+    document.getElementById('tbl-he').textContent = data.e_H;
+    document.getElementById('graph-info-card').style.display = 'block';
+
+    document.getElementById('btn-run').disabled = false;
+    setStep(2);
+    toast('Đồ thị đã tạo. Nhấn "Chạy NDSD + Local Search" để tiếp tục.');
+  } catch (e) {
+    toast('Lỗi: ' + e.message);
+  } finally {
+    loadEl.style.display = 'none';
+  }
+}
+
+// ── RUN ALGORITHM ──
+async function runAlgorithm() {
+  document.getElementById('algo-loading').classList.add('show');
+  document.getElementById('results-section').style.display = 'none';
+  document.getElementById('btn-run').disabled = true;
+  setStep(3);
+
+  try {
+    const res = await fetch('/api/run_ndsd', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: S.model, n: S.n, epsilon: S.eps, delta: S.delta }),
+    });
+    const d = await res.json();
+
+    S.ndsdCorrect = d.ndsd_correct; S.lsCorrect = d.ls_correct;
+    S.ndsdMapping = d.ndsd_mapping; S.lsMapping = d.ls_mapping;
+
+    setStep(4);
+    document.getElementById('results-section').style.display = 'block';
+
+    animNum('acc-ndsd', d.acc_ndsd, '%', 700);
+    animNum('acc-ls', d.acc_ls, '%', 900);
+    document.getElementById('acc-time').textContent = `${d.t_ndsd.toFixed(2)}s + ${d.t_ls.toFixed(2)}s`;
+
+    setTimeout(() => {
+      document.getElementById('bar-ndsd').style.width = d.acc_ndsd + '%';
+      document.getElementById('bar-ls').style.width = d.acc_ls + '%';
+    }, 100);
+
+    buildMatchGrid(d);
+
+    // Re-color H graph
+    const hmap = {};
+    for (const [k, ok] of Object.entries(d.ndsd_correct)) {
+      hmap[k] = ok ? 'correct_ndsd' : (d.ls_correct[k] ? 'correct_ls' : 'wrong');
+    }
+    if (S.H) drawGraph('svg-H', S.H, { nodeBaseColor: '#F97316', edgeColor: '#FED7AA', highlightMap: hmap });
+
+    toast(`Xong: NDSD ${d.acc_ndsd}% → Local Search ${d.acc_ls}%`);
+  } catch (e) {
+    toast('Lỗi: ' + e.message);
+  } finally {
+    document.getElementById('algo-loading').classList.remove('show');
+    document.getElementById('btn-run').disabled = false;
+  }
+}
+
+function animNum(id, to, suffix, dur) {
+  const el = document.getElementById(id);
+  const t0 = performance.now();
+  (function tick(now) {
+    const p = Math.min((now - t0) / dur, 1);
+    el.textContent = (to * (1 - Math.pow(1 - p, 3))).toFixed(1) + suffix;
+    if (p < 1) requestAnimationFrame(tick);
+  })(t0);
+}
+
+function buildMatchGrid(d) {
+  const c = document.getElementById('match-grid');
+  c.innerHTML = '';
+  for (const hStr of Object.keys(d.true_map)) {
+    const predicted = d.ls_mapping[hStr];
+    const ndsdOk = d.ndsd_correct[hStr];
+    const lsOk = d.ls_correct[hStr];
+    const cls = lsOk ? 'correct-ls' : ndsdOk ? 'correct-ndsd' : 'wrong';
+    const icon = lsOk ? '✓' : ndsdOk ? '~' : '✗';
+    const div = document.createElement('div');
+    div.className = 'match-item ' + cls;
+    div.innerHTML = `
+      <span style="color:var(--orange);font-weight:700;">H${hStr}</span>
+      <span style="color:var(--text-3);">→</span>
+      <span style="color:var(--primary);font-weight:700;">G${predicted}</span>
+      <span style="margin-left:auto;font-size:11px;color:${lsOk?'var(--green)':ndsdOk?'var(--primary)':'var(--red)'};">${icon}</span>
+    `;
+    c.appendChild(div);
+  }
+}
+
+// ── CHART ──
+let chartBusy = false;
+async function loadChart() {
+  if (chartBusy) return;
+  chartBusy = true;
+  const model = document.getElementById('chart-model').value;
+  const ov = document.getElementById('chart-loading');
+  document.getElementById('chart-loading-msg').textContent = `Tính toán cho mô hình ${model}...`;
+  ov.classList.add('show');
+
+  try {
+    const res = await fetch('/api/accuracy_curve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model, n: 25 }),
+    });
+    const data = await res.json();
+
+    const MODEL_COLORS = { BA:'#3B82F6', HK:'#F97316', ER:'#10B981', WS:'#64748B' };
+    const c = MODEL_COLORS[model] || '#3B82F6';
+
+    if (S.chartInst) S.chartInst.destroy();
+    const ctx = document.getElementById('accuracy-chart').getContext('2d');
+    S.chartInst = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: data.noise_levels.map(v => v + '%'),
+        datasets: [
+          {
+            label: 'Local Search',
+            data: data.ls,
+            borderColor: c,
+            backgroundColor: c + '18',
+            fill: true,
+            tension: 0.4,
+            borderWidth: 2.5,
+            pointRadius: 5,
+            pointBackgroundColor: '#fff',
+            pointBorderColor: c,
+            pointBorderWidth: 2,
+          },
+          {
+            label: 'NDSD',
+            data: data.ndsd,
+            borderColor: c + '80',
+            backgroundColor: 'transparent',
+            fill: false,
+            tension: 0.4,
+            borderWidth: 1.5,
+            borderDash: [5, 4],
+            pointRadius: 4,
+            pointBackgroundColor: '#fff',
+            pointBorderColor: c,
+            pointBorderWidth: 1.5,
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        animation: { duration: 600 },
+        plugins: {
+          legend: {
+            labels: {
+              color: '#475569',
+              font: { family: 'Fira Sans', size: 12 },
+              boxWidth: 12, boxHeight: 12,
+            }
+          },
+          tooltip: {
+            backgroundColor: '#fff',
+            borderColor: '#E2E8F0',
+            borderWidth: 1,
+            titleColor: '#1E293B',
+            bodyColor: '#475569',
+            padding: 10,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            callbacks: { label: ctx => ` ${ctx.dataset.label}: ${ctx.raw}%` }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: '#F1F5F9' },
+            ticks: { color: '#94A3B8', font: { family: 'Fira Code', size: 11 } },
+            title: { display: true, text: 'Mức nhiễu ε', color: '#64748B', font: { size: 12 } }
+          },
+          y: {
+            min: 0, max: 105,
+            grid: { color: '#F1F5F9' },
+            ticks: {
+              color: '#94A3B8', font: { family: 'Fira Code', size: 11 },
+              callback: v => v + '%',
+            },
+            title: { display: true, text: 'Accuracy', color: '#64748B', font: { size: 12 } }
+          }
+        }
+      }
+    });
+  } catch (e) {
+    toast('Lỗi biểu đồ: ' + e.message);
+  } finally {
+    ov.classList.remove('show');
+    chartBusy = false;
+  }
+}
+
+// ── GAME ──
+async function startGame() {
+  const model = document.getElementById('game-model').value;
+  const eps = parseFloat(document.getElementById('game-eps').value);
+
+  document.getElementById('game-placeholder').style.display = 'none';
+  document.getElementById('game-area').style.display = 'block';
+  document.getElementById('score-area').style.display = 'none';
+  document.getElementById('game-placeholder-score').style.display = 'block';
+  document.getElementById('btn-submit').style.display = 'inline-flex';
+  document.getElementById('btn-algo-reveal').style.display = 'none';
+
+  S.gameGuesses = {};
+
+  try {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model, n: 12, epsilon: eps, delta: 0.05 }),
+    });
+    const data = await res.json();
+    S.gameData = data;
+
+    drawGraph('svg-game-G', data.G, { nodeBaseColor: '#3B82F6', edgeColor: '#DBEAFE' });
+    drawGraph('svg-game-H', data.H, { nodeBaseColor: '#F97316', edgeColor: '#FED7AA' });
+
+    const gNodes = data.G.nodes.map(n => n.id);
+    const hNodes = data.H.nodes;
+    const container = document.getElementById('game-guesses');
+    container.innerHTML = '';
+
+    hNodes.forEach(hn => {
+      const row = document.createElement('div');
+      row.className = 'guess-row';
+      row.id = 'grow-' + hn.id;
+
+      const hchip = document.createElement('span');
+      hchip.className = 'node-chip h';
+      hchip.textContent = 'H' + hn.id;
+
+      const arr = document.createElement('span');
+      arr.style.cssText = 'color:var(--text-3); font-size:12px;';
+      arr.textContent = '→';
+
+      const sel = document.createElement('select');
+      sel.className = 'guess-sel';
+      sel.id = 'gsel-' + hn.id;
+      sel.innerHTML = '<option value="">Chọn G...</option>' +
+        gNodes.map(g => `<option value="${g}">G${g}</option>`).join('');
+      sel.onchange = () => {
+        S.gameGuesses[String(hn.id)] = sel.value;
+        updateGameProgress(hNodes.length);
+      };
+
+      const verdict = document.createElement('span');
+      verdict.className = 'guess-verdict';
+      verdict.id = 'gverdict-' + hn.id;
+
+      row.append(hchip, arr, sel, verdict);
+      container.appendChild(row);
+    });
+
+    updateGameProgress(hNodes.length);
+    toast('Game bắt đầu! Ghép các node H → G rồi nhấn kiểm tra.');
+  } catch (e) {
+    toast('Lỗi: ' + e.message);
+  }
+}
+
+function updateGameProgress(total) {
+  const filled = Object.values(S.gameGuesses).filter(v => v !== '').length;
+  document.getElementById('game-progress').textContent = `${filled}/${total} đã ghép`;
+}
+
+async function submitGuess() {
+  if (!S.gameData) return;
+  const hNodes = S.gameData.H.nodes;
+  const allFilled = hNodes.every(n => S.gameGuesses[String(n.id)]);
+  if (!allFilled) { toast('Hãy ghép tất cả node H trước!'); return; }
+
+  try {
+    const res = await fetch('/api/game_check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ guesses: S.gameGuesses, true_map: S.gameData.true_map }),
+    });
+    const d = await res.json();
+
+    for (const [hStr, r] of Object.entries(d.results)) {
+      const row = document.getElementById('grow-' + hStr);
+      const ver = document.getElementById('gverdict-' + hStr);
+      if (row) { row.classList.toggle('correct', r.correct); row.classList.toggle('wrong', !r.correct); }
+      if (ver) {
+        ver.className = 'guess-verdict ' + (r.correct ? 'ok' : 'bad');
+        ver.textContent = r.correct ? '✓ đúng' : `✗ G${r.actual}`;
+      }
+    }
+
+    document.getElementById('score-area').style.display = 'block';
+    document.getElementById('game-placeholder-score').style.display = 'none';
+    document.getElementById('btn-submit').style.display = 'none';
+    document.getElementById('btn-algo-reveal').style.display = 'inline-flex';
+
+    const pct = d.score;
+    const ring = document.getElementById('score-ring');
+    ring.textContent = pct.toFixed(0) + '%';
+    ring.className = 'score-ring ' + (pct >= 80 ? 'great' : pct >= 50 ? 'ok' : 'bad');
+    document.getElementById('score-msg').textContent =
+      pct === 100 ? 'Hoàn hảo!' : pct >= 80 ? 'Rất tốt!' : pct >= 50 ? 'Khá ổn!' : 'Cần thêm kinh nghiệm!';
+    document.getElementById('score-detail').textContent = `Đúng ${d.correct}/${d.total} node`;
+
+    // Get algo score for comparison
+    const algRes = await fetch('/api/run_ndsd', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: document.getElementById('game-model').value,
+        n: 12, epsilon: parseFloat(document.getElementById('game-eps').value), delta: 0.05,
+      }),
+    });
+    const alg = await algRes.json();
+    document.getElementById('algo-compare-val').textContent = `NDSD ${alg.acc_ndsd}% → LS ${alg.acc_ls}%`;
+  } catch (e) {
+    toast('Lỗi: ' + e.message);
+  }
+}
+
+async function showAlgoResult() {
+  try {
+    const algRes = await fetch('/api/run_ndsd', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: document.getElementById('game-model').value,
+        n: 12, epsilon: parseFloat(document.getElementById('game-eps').value), delta: 0.05,
+      }),
+    });
+    const d = await algRes.json();
+    if (S.gameData) {
+      const hmap = {};
+      for (const [k, ok] of Object.entries(d.ndsd_correct)) {
+        hmap[k] = ok ? 'correct_ndsd' : (d.ls_correct[k] ? 'correct_ls' : 'wrong');
+      }
+      drawGraph('svg-game-H', S.gameData.H, { nodeBaseColor: '#F97316', edgeColor: '#FED7AA', highlightMap: hmap });
+    }
+    toast(`Thuật toán: NDSD ${d.acc_ndsd}% → LS ${d.acc_ls}%`);
+  } catch (e) {
+    toast('Lỗi: ' + e.message);
+  }
+}
+
+// ── INIT ──
+window.addEventListener('load', () => generateGraphs());
+</script>
+
+</body>
+</html>
