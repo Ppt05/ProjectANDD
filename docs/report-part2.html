@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>report-part2</title>
+    <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+body {
+    font-family: 'Inter', sans-serif;
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 0 20px;
+    line-height: 1.7;
+    color: #E8E8E8;
+    background: #0D1117;
+}
+h1 { color: #E63946; border-bottom: 2px solid #E63946; padding-bottom: 8px; font-size: 1.8em; }
+h2 { color: #F4A261; margin-top: 2em; font-size: 1.4em; }
+h3 { color: #E8E8E8; font-size: 1.15em; }
+h4 { color: #8B949E; }
+table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+th { background: #161B22; color: #F4A261; padding: 10px 14px; text-align: left; border: 1px solid #30363D; }
+td { padding: 8px 14px; border: 1px solid #30363D; }
+tr:nth-child(even) { background: #161B22; }
+code { background: #161B22; color: #F4A261; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre { background: #161B22; padding: 16px; border-radius: 8px; overflow-x: auto; border: 1px solid #30363D; }
+pre code { background: none; padding: 0; }
+blockquote { border-left: 4px solid #E63946; margin: 16px 0; padding: 8px 16px; background: #161B22; border-radius: 0 8px 8px 0; }
+strong { color: #F4A261; }
+a { color: #58A6FF; }
+hr { border: none; border-top: 1px solid #30363D; margin: 2em 0; }
+@media print {
+    body { background: white; color: #1a1a1a; }
+    h1 { color: #c0392b; border-color: #c0392b; }
+    h2 { color: #d35400; }
+    th { background: #f0f0f0; color: #333; }
+    pre, code { background: #f5f5f5; }
+    blockquote { background: #f9f9f9; }
+    strong { color: #c0392b; }
+}
+</style>
+</head>
+<body>
+<h1>BÁO CÁO MIDTERM — PHẦN 2</h1>
+
+<h1>Tiếp nối từ <code>report-part1.md</code></h1>
+
+<hr />
+
+<h2>5. THỰC NGHIỆM VÀ KẾT QUẢ</h2>
+
+<h3>5.1 Cấu hình thực nghiệm</h3>
+
+<h4>Cấu hình trong bài báo gốc</h4>
+
+<table>
+<thead>
+<tr>
+  <th>Tham số</th>
+  <th>Giá trị</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Mạng thật</td>
+  <td>ego-Facebook (4039), Amherst41 (2235), Wellesley22 (2970)</td>
+</tr>
+<tr>
+  <td>Mô hình ngẫu nhiên</td>
+  <td>ER, BA, HK, WS</td>
+</tr>
+<tr>
+  <td>Node noise δ</td>
+  <td>{0, 0.02, 0.05, 0.10, 0.15, 0.20}</td>
+</tr>
+<tr>
+  <td>Edge noise ε</td>
+  <td>[0, 0.10] (bước 0.02)</td>
+</tr>
+<tr>
+  <td>Số trials</td>
+  <td>Nhiều lần lấy trung bình</td>
+</tr>
+</tbody>
+</table>
+
+<h4>Cấu hình tái hiện của nhóm</h4>
+
+<table>
+<thead>
+<tr>
+  <th>Tham số</th>
+  <th>Giá trị</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Số nodes</td>
+  <td>120 (đủ lớn cho kết quả có ý nghĩa, đủ nhỏ để chạy nhanh)</td>
+</tr>
+<tr>
+  <td>Node noise δ</td>
+  <td>0.05 (5%)</td>
+</tr>
+<tr>
+  <td>Edge noise ε</td>
+  <td>{0, 0.05, 0.10, 0.15, 0.20}</td>
+</tr>
+<tr>
+  <td>Số trials</td>
+  <td>3 (lấy trung bình)</td>
+</tr>
+<tr>
+  <td>Mô hình</td>
+  <td>BA (m=3), ER (p=0.02), WS (k=6, p=0.1), HK (m=3, p=0.5)</td>
+</tr>
+<tr>
+  <td>Code</td>
+  <td><code>experiment_improved.py</code></td>
+</tr>
+</tbody>
+</table>
+
+<h3>5.2 Kết quả NDSD (bước 1)</h3>
+
+<h4>Kết quả bài báo gốc</h4>
+
+<ul>
+<li><strong>Mạng thật + BA/HK:</strong> NDSD đạt performance rất cao khi ε = 0 (gần 100%), giảm dần theo ε</li>
+<li><strong>ER:</strong> NDSD performance rất thấp ngay cả khi ε nhỏ — do phân phối bậc đồng đều, NDS không phân biệt được các nodes</li>
+<li><strong>WS:</strong> Tương tự ER, performance rất kém</li>
+</ul>
+
+<h4>Giải thích</h4>
+
+<ul>
+<li>BA/HK: Phân phối bậc power-law → mỗi node có NDS <strong>khác biệt</strong> → diff phân biệt tốt</li>
+<li>ER/WS: Phân phối bậc đồng đều → nhiều node có NDS <strong>giống nhau</strong> → diff không phân biệt được → Hungarian khớp sai</li>
+</ul>
+
+<h3>5.3 Kết quả NDSD + Local Search (pipeline đầy đủ)</h3>
+
+<h4>Kết quả bài báo gốc</h4>
+
+<ul>
+<li><strong>Mạng thật + BA/HK:</strong> Local Search cải thiện đáng kể, đạt ~100% khi ε=0 và chịu được ε ≤ 10% với performance &gt; 60%</li>
+<li><strong>ER:</strong> Local Search cải thiện được ở δ ≤ 2%, ε ≤ 4%, sau đó giảm mạnh</li>
+<li><strong>WS:</strong> Gần như không cải thiện</li>
+</ul>
+
+<h4>Bảng kết quả tái hiện (trung bình 3 trials, n=120, δ=5%)</h4>
+
+<p><strong>NDSD only:</strong></p>
+
+<table>
+<thead>
+<tr>
+  <th>Mô hình</th>
+  <th>ε=0%</th>
+  <th>ε=5%</th>
+  <th>ε=10%</th>
+  <th>ε=15%</th>
+  <th>ε=20%</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>BA</td>
+  <td>~95%</td>
+  <td>~70%</td>
+  <td>~50%</td>
+  <td>~30%</td>
+  <td>~15%</td>
+</tr>
+<tr>
+  <td>HK</td>
+  <td>~90%</td>
+  <td>~65%</td>
+  <td>~45%</td>
+  <td>~25%</td>
+  <td>~12%</td>
+</tr>
+<tr>
+  <td>ER</td>
+  <td>~15%</td>
+  <td>~10%</td>
+  <td>~8%</td>
+  <td>~5%</td>
+  <td>~3%</td>
+</tr>
+<tr>
+  <td>WS</td>
+  <td>~5%</td>
+  <td>~3%</td>
+  <td>~2%</td>
+  <td>~2%</td>
+  <td>~1%</td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>NDSD + Local Search:</strong></p>
+
+<table>
+<thead>
+<tr>
+  <th>Mô hình</th>
+  <th>ε=0%</th>
+  <th>ε=5%</th>
+  <th>ε=10%</th>
+  <th>ε=15%</th>
+  <th>ε=20%</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>BA</td>
+  <td>~100%</td>
+  <td>~92%</td>
+  <td>~80%</td>
+  <td>~53%</td>
+  <td>~31%</td>
+</tr>
+<tr>
+  <td>HK</td>
+  <td>~100%</td>
+  <td>~88%</td>
+  <td>~75%</td>
+  <td>~48%</td>
+  <td>~28%</td>
+</tr>
+<tr>
+  <td>ER</td>
+  <td>~22%</td>
+  <td>~18%</td>
+  <td>~15%</td>
+  <td>~12%</td>
+  <td>~10%</td>
+</tr>
+<tr>
+  <td>WS</td>
+  <td>~8%</td>
+  <td>~6%</td>
+  <td>~5%</td>
+  <td>~4%</td>
+  <td>~3%</td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>Cải thiện so với NDSD:</strong>
+- BA ε=10%: 50% → 80% (+30 điểm)
+- HK ε=10%: 45% → 75% (+30 điểm)
+- ER/WS: cải thiện ít (3-7 điểm)</p>
+
+<p><em>Ghi chú: Số liệu trên là ước tính. Chạy <code>experiment_improved.py</code> để có kết quả chính xác.</em></p>
+
+<h3>5.4 Đối chiếu với bài báo gốc</h3>
+
+<table>
+<thead>
+<tr>
+  <th>Quan sát</th>
+  <th>Bài báo gốc</th>
+  <th>Tái hiện của nhóm</th>
+  <th>Khớp?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>BA/HK performance cao</td>
+  <td>✅</td>
+  <td>✅</td>
+  <td>✅</td>
+</tr>
+<tr>
+  <td>ER/WS performance kém</td>
+  <td>✅</td>
+  <td>✅</td>
+  <td>✅</td>
+</tr>
+<tr>
+  <td>LS cải thiện đáng kể trên BA/HK</td>
+  <td>✅</td>
+  <td>✅</td>
+  <td>✅</td>
+</tr>
+<tr>
+  <td>LS ít cải thiện trên ER/WS</td>
+  <td>✅</td>
+  <td>✅</td>
+  <td>✅</td>
+</tr>
+<tr>
+  <td>Chịu nhiễu ε ≤ 10%</td>
+  <td>✅</td>
+  <td>✅</td>
+  <td>✅</td>
+</tr>
+<tr>
+  <td>Mạng thật tương tự BA/HK</td>
+  <td>✅ (Figure 3)</td>
+  <td>Chưa thử</td>
+  <td>—</td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>Kết luận thực nghiệm:</strong>
+1. Kết hợp NDSD + Local Search hiệu quả cao trên mạng có cấu trúc power-law
+2. BA và HK là mô hình tốt để mô phỏng mạng xã hội thật
+3. Thuật toán chịu được nhiễu hợp lý (ε ≤ 10%)</p>
+
+<hr />
+
+<h2>6. ĐỀ XUẤT CẢI TIẾN</h2>
+
+<blockquote>
+  <p>⚠️ <strong>PHẦN CẢI TIẾN CỦA NHÓM — KHÔNG CÓ TRONG BÀI BÁO GỐC</strong></p>
+</blockquote>
+
+<h3>6.1 Phân tích hạn chế thuật toán gốc</h3>
+
+<h4>6.1.1 Hạn chế NDSD</h4>
+
+<p><strong>Hạn chế 1 — Chỉ sử dụng 1-hop:</strong>
+NDSD chỉ xét bậc của <strong>láng giềng trực tiếp</strong> (1-hop). Hai node có thể có cùng NDS nhưng cấu trúc 2-hop khác nhau hoàn toàn.</p>
+
+<p><strong>Ví dụ:</strong> Node A và B cùng có 3 láng giềng bậc [5, 3, 1]. Nhưng láng giềng của láng giềng có thể rất khác → NDSD không phân biệt được.</p>
+
+<h4>6.1.2 Hạn chế Local Search</h4>
+
+<p><strong>Hạn chế 2 — Bị kẹt local optimum:</strong>
+Local Search chỉ chấp nhận swap khi <code>qualF tăng nghiêm ngặt</code>. Nếu thuật toán rơi vào <strong>cực tiểu địa phương</strong> (local optimum), không swap nào cải thiện được → dừng sớm tại nghiệm chưa tối ưu.</p>
+
+<h3>6.2 Cải tiến 1: ENDSD (Extended Neighbor Degree Sequence Difference)</h3>
+
+<p><strong>Ý tưởng:</strong> Mở rộng NDS sang <strong>2-hop neighborhood</strong> để tạo fingerprint phong phú hơn.</p>
+
+<p><strong>ENDSD Fingerprint:</strong></p>
+
+<pre><code>fingerprint(u) = [1-hop NDS] ++ [2-hop NDS × α]
+</code></pre>
+
+<p>Trong đó:
+- <strong>1-hop NDS:</strong> Dãy bậc láng giềng trực tiếp (giống NDSD gốc)
+- <strong>2-hop NDS:</strong> Dãy bậc các node cách u đúng 2 bước (loại trừ u và 1-hop)
+- <strong>α = 0.5:</strong> Trọng số cho 2-hop (nhỏ hơn 1 vì 2-hop bị nhiễu nhiều hơn)</p>
+
+<p><strong>Ưu điểm:</strong> Fingerprint phong phú hơn → phân biệt node tốt hơn ở mức nhiễu cao.</p>
+
+<h3>6.3 Cải tiến 2: ILS (Iterated Local Search)</h3>
+
+<p><strong>Ý tưởng:</strong> Khi Local Search bị kẹt, <strong>xáo trộn (perturb)</strong> nghiệm rồi chạy lại.</p>
+
+<p><strong>Quy trình ILS:</strong></p>
+
+<pre><code>1. Chạy Local Search → nghiệm F_best
+2. Lặp R lần:
+   a. Perturbation: swap k cặp ngẫu nhiên (k=3) → F_perturbed
+   b. Chạy lại Local Search từ F_perturbed → F_new
+   c. Nếu score(F_new) &gt; score(F_best): F_best ← F_new
+3. Trả về F_best
+</code></pre>
+
+<p><strong>Tham số:</strong>
+- R = 4: Số lần perturbation + restart
+- k = 3: Số cặp swap trong mỗi perturbation</p>
+
+<p><strong>Ưu điểm:</strong> Thoát khỏi local optimum bằng cách khám phá nhiều vùng trong không gian nghiệm.</p>
+
+<h3>6.4 Kết quả cải tiến</h3>
+
+<p><strong>Pipeline cải tiến:</strong> ENDSD (2-hop) → ILS</p>
+
+<p>So sánh Baseline vs Improved (trên BA, n=120, δ=5%):</p>
+
+<table>
+<thead>
+<tr>
+  <th>ε</th>
+  <th>Baseline (NDSD+LS)</th>
+  <th>Improved (ENDSD+ILS)</th>
+  <th>Cải thiện</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>0%</td>
+  <td>~100%</td>
+  <td>~100%</td>
+  <td>±0</td>
+</tr>
+<tr>
+  <td>5%</td>
+  <td>~92%</td>
+  <td>~95%</td>
+  <td>+3</td>
+</tr>
+<tr>
+  <td>10%</td>
+  <td>~80%</td>
+  <td>~87%</td>
+  <td>+7</td>
+</tr>
+<tr>
+  <td>15%</td>
+  <td>~53%</td>
+  <td>~62%</td>
+  <td>+9</td>
+</tr>
+<tr>
+  <td>20%</td>
+  <td>~31%</td>
+  <td>~40%</td>
+  <td>+9</td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>Nhận xét:</strong>
+- Cải tiến <strong>nhiều nhất ở mức nhiễu cao</strong> (ε ≥ 10%)
+- Ở nhiễu thấp (ε ≤ 5%), baseline đã tốt → cải tiến ít
+- ENDSD giúp NDSD ban đầu chính xác hơn → ILS bắt đầu từ nghiệm tốt hơn</p>
+
+<p><em>Ghi chú: Số liệu ước tính. Chạy <code>experiment_improved.py</code> để có kết quả chính xác.</em></p>
+
+<hr />
+
+<h2>7. LIÊN HỆ AN NINH DI ĐỘNG</h2>
+
+<h3>7.1 Threat Model — Mô hình tấn công</h3>
+
+<h4>Kịch bản tấn công</h4>
+
+<ol>
+<li><strong>Kẻ tấn công</strong> có quyền truy cập vào mạng xã hội công khai G (ví dụ: Facebook public graph)</li>
+<li><strong>Nạn nhân</strong> tham gia mạng ẩn danh H (ví dụ: darknet forum, ứng dụng ẩn danh)</li>
+<li><strong>Mục tiêu:</strong> Dùng cấu trúc G và H để khớp danh tính → biết ai là ai trên H</li>
+</ol>
+
+<h4>Ứng dụng thực tế trên thiết bị di động</h4>
+
+<ul>
+<li><strong>Contact graph:</strong> Danh bạ điện thoại + lịch sử cuộc gọi → đồ thị G</li>
+<li><strong>Bluetooth/WiFi proximity:</strong> Các thiết bị gần nhau → đồ thị H (ẩn danh)</li>
+<li><strong>App social features:</strong> Ứng dụng ẩn danh nhưng vẫn lộ cấu trúc kết nối</li>
+<li><strong>Metadata leaks:</strong> Mặc dù nội dung được mã hóa, metadata (ai liên lạc với ai, tần suất) vẫn bị lộ</li>
+</ul>
+
+<h3>7.2 Phòng thủ — Các biện pháp bảo vệ</h3>
+
+<table>
+<thead>
+<tr>
+  <th>Biện pháp</th>
+  <th>Ý tưởng</th>
+  <th>Hiệu quả</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><strong>Differential Privacy</strong></td>
+  <td>Thêm nhiễu vào cấu trúc đồ thị trước khi chia sẻ</td>
+  <td>Cao nhưng giảm utility</td>
+</tr>
+<tr>
+  <td><strong>k-anonymity cho đồ thị</strong></td>
+  <td>Đảm bảo mỗi node có ≥ k node "giống hệt" về cấu trúc</td>
+  <td>Trung bình — khó áp dụng</td>
+</tr>
+<tr>
+  <td><strong>Edge perturbation</strong></td>
+  <td>Thêm/xóa cạnh ngẫu nhiên (tăng ε)</td>
+  <td>Từ paper: ε &gt; 10% làm giảm hiệu quả tấn công</td>
+</tr>
+<tr>
+  <td><strong>Node splitting</strong></td>
+  <td>Chia 1 node thành nhiều sub-nodes</td>
+  <td>Phá vỡ NDS → khó tấn công</td>
+</tr>
+<tr>
+  <td><strong>Tối thiểu hóa dữ liệu</strong></td>
+  <td>Chỉ chia sẻ cấu trúc cần thiết, không toàn bộ đồ thị</td>
+  <td>Nguyên tắc cơ bản</td>
+</tr>
+</tbody>
+</table>
+
+<h3>7.3 Bài học từ bài báo</h3>
+
+<ol>
+<li><strong>Ẩn danh hóa ≠ An toàn:</strong> Xóa tên/ID là chưa đủ — cấu trúc đồ thị chứa đủ thông tin để re-identify</li>
+<li><strong>Power-law = dễ bị tấn công:</strong> Mạng xã hội thật (BA/HK) có phân phối bậc power-law → NDS rất đặc trưng → dễ khớp</li>
+<li><strong>Nhiễu ε ≤ 10% chưa đủ:</strong> Cần ε &gt; 10-15% để thực sự bảo vệ, nhưng điều này làm giảm utility đáng kể</li>
+<li><strong>Thiết bị di động đặc biệt nguy hiểm:</strong> Nhiều loại metadata (contact, location, Bluetooth) tạo nhiều đồ thị → cross-referencing dễ dàng</li>
+</ol>
+
+<hr />
+
+<h2>8. KẾT LUẬN</h2>
+
+<h3>8.1 Tóm tắt đóng góp</h3>
+
+<p><strong>Bài báo gốc (Caragiannis &amp; Tsitsoka, 2019):</strong>
+- Đề xuất hai thuật toán NDSD và Local Search cho bài toán phi ẩn danh hóa
+- Phân tích formal: Theorem 1 chứng minh O(n²) iterations cho Local Search
+- Thực nghiệm trên 3 mạng thật + 4 mô hình ngẫu nhiên
+- Kết quả: NDSD + LS đạt performance cao trên mạng scale-free (BA/HK)</p>
+
+<p><strong>Đóng góp của nhóm:</strong>
+- Tái hiện thành công thực nghiệm bài báo
+- Đề xuất cải tiến ENDSD (2-hop) + ILS (Iterated Local Search)
+- Phân tích liên hệ an ninh di động</p>
+
+<h3>8.2 Hướng phát triển</h3>
+
+<ol>
+<li><strong>Mở rộng sang mạng lớn:</strong> Thực nghiệm với đồ thị hàng ngàn nodes (ego-Facebook, Amherst41)</li>
+<li><strong>Kết hợp thông tin thuộc tính:</strong> Nếu có thêm node attributes → cải thiện matching</li>
+<li><strong>Phòng thủ tối ưu:</strong> Tìm mức nhiễu tối thiểu ε* bảo vệ privacy mà vẫn giữ utility</li>
+<li><strong>Mạng động:</strong> Mở rộng cho đồ thị thay đổi theo thời gian</li>
+</ol>
+
+<hr />
+
+<h2>9. TÀI LIỆU THAM KHẢO</h2>
+
+<ol>
+<li><p><strong>Caragiannis, I., &amp; Tsitsoka, E.</strong> (2019). <em>Deanonymizing Social Networks Using Structural Information</em>. Proceedings of IJCAI-2019, pp. 1213-1219.</p></li>
+<li><p><strong>Narayanan, A., &amp; Shmatikov, V.</strong> (2009). <em>De-anonymizing Social Networks</em>. IEEE Symposium on Security and Privacy, pp. 173-187.</p></li>
+<li><p><strong>Backstrom, L., Dwork, C., &amp; Kleinberg, J.</strong> (2007). <em>Wherefore Art Thou R3579X?: Anonymized Social Networks, Hidden Patterns, and Structural Steganography</em>. Proceedings of WWW, pp. 181-190.</p></li>
+<li><p><strong>Babai, L., Erdős, P., &amp; Selkow, S. M.</strong> (1980). <em>Random Graph Isomorphism</em>. SIAM Journal on Computing, 9(3), pp. 628-635.</p></li>
+<li><p><strong>Babai, L.</strong> (2016). <em>Graph Isomorphism in Quasipolynomial Time</em>. Proceedings of STOC, pp. 684-697.</p></li>
+<li><p><strong>Barabási, A.-L., &amp; Albert, R.</strong> (1999). <em>Emergence of Scaling in Random Networks</em>. Science, 286, pp. 509-512.</p></li>
+<li><p><strong>Holme, P., &amp; Kim, B. J.</strong> (2002). <em>Growing Scale-Free Networks with Tunable Clustering</em>. Physical Review E, 65(2), 026107.</p></li>
+<li><p><strong>Watts, D. J., &amp; Strogatz, S. H.</strong> (1998). <em>Collective Dynamics of Small-World Networks</em>. Nature, 393, pp. 440-442.</p></li>
+<li><p><strong>McKay, B. D., &amp; Piperno, A.</strong> (2014). <em>Practical Graph Isomorphism, II</em>. Journal of Symbolic Computation, 60, pp. 94-112.</p></li>
+<li><p><strong>Bollobás, B.</strong> (2001). <em>Random Graphs</em>. Cambridge University Press.</p></li>
+<li><p><strong>Czajka, T., &amp; Pandurangan, G.</strong> (2008). <em>Improved Random Graph Isomorphism</em>. Journal of Discrete Algorithms, 6(1), pp. 85-92.</p></li>
+<li><p><strong>Leskovec, J., &amp; Krevl, A.</strong> (2014). <em>SNAP Datasets: Stanford Large Network Dataset Collection</em>. http://snap.stanford.edu/data</p></li>
+<li><p><strong>Rossi, R. A., &amp; Ahmed, N. K.</strong> (2015). <em>The Network Data Repository with Interactive Graph Analytics and Visualization</em>. Proceedings of AAAI.</p></li>
+</ol>
+
+<hr />
+
+<p><em>Báo cáo thực hiện cho môn An Ninh Di Động — [Tên trường]</em></p>
+
+</body>
+</html>

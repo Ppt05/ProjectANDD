@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>presentation-script-part1</title>
+    <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+body {
+    font-family: 'Inter', sans-serif;
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 0 20px;
+    line-height: 1.7;
+    color: #E8E8E8;
+    background: #0D1117;
+}
+h1 { color: #E63946; border-bottom: 2px solid #E63946; padding-bottom: 8px; font-size: 1.8em; }
+h2 { color: #F4A261; margin-top: 2em; font-size: 1.4em; }
+h3 { color: #E8E8E8; font-size: 1.15em; }
+h4 { color: #8B949E; }
+table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+th { background: #161B22; color: #F4A261; padding: 10px 14px; text-align: left; border: 1px solid #30363D; }
+td { padding: 8px 14px; border: 1px solid #30363D; }
+tr:nth-child(even) { background: #161B22; }
+code { background: #161B22; color: #F4A261; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre { background: #161B22; padding: 16px; border-radius: 8px; overflow-x: auto; border: 1px solid #30363D; }
+pre code { background: none; padding: 0; }
+blockquote { border-left: 4px solid #E63946; margin: 16px 0; padding: 8px 16px; background: #161B22; border-radius: 0 8px 8px 0; }
+strong { color: #F4A261; }
+a { color: #58A6FF; }
+hr { border: none; border-top: 1px solid #30363D; margin: 2em 0; }
+@media print {
+    body { background: white; color: #1a1a1a; }
+    h1 { color: #c0392b; border-color: #c0392b; }
+    h2 { color: #d35400; }
+    th { background: #f0f0f0; color: #333; }
+    pre, code { background: #f5f5f5; }
+    blockquote { background: #f9f9f9; }
+    strong { color: #c0392b; }
+}
+</style>
+</head>
+<body>
+<h1>KỊCH BẢN THUYẾT TRÌNH CHI TIẾT — PHẦN 1</h1>
+
+<h1>Slide 1–14: Mở đầu + Lý thuyết + Thực nghiệm</h1>
+
+<h1>Bài báo: "Deanonymizing Social Networks Using Structural Information" (IJCAI-2019)</h1>
+
+<hr />
+
+<h2>📌 HƯỚNG DẪN ĐỌC</h2>
+
+<table>
+<thead>
+<tr>
+  <th>Ký hiệu</th>
+  <th>Nghĩa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><strong>[NÓI]</strong></td>
+  <td>Lời nói — đọc/diễn khi thuyết trình</td>
+</tr>
+<tr>
+  <td><strong>[DẪN]</strong></td>
+  <td>Câu chuyển tiếp sang slide tiếp</td>
+</tr>
+<tr>
+  <td><strong>⏱️</strong></td>
+  <td>Thời gian gợi ý cho slide</td>
+</tr>
+</tbody>
+</table>
+
+<hr />
+
+<h1>═══════════════════════</h1>
+
+<h1>SLIDE 1 — BÌA (⏱️ 30s)</h1>
+
+<h1>═══════════════════════</h1>
+
+<p><strong>[NÓI]:</strong>
+"Xin chào thầy/cô và các bạn. Hôm nay nhóm chúng tôi sẽ trình bày về bài báo 'Deanonymizing Social Networks Using Structural Information', được công bố tại hội nghị IJCAI năm 2019 bởi hai tác giả Caragiannis và Tsitsoka từ Đại học Patras, Hy Lạp."</p>
+
+<hr />
+
+<h1>═══════════════════════</h1>
+
+<h1>SLIDE 2 — MỤC LỤC (⏱️ 1 phút)</h1>
+
+<h1>═══════════════════════</h1>
+
+<p><strong>[NÓI]:</strong>
+"Bài trình bày gồm 4 phần chính:
+- Phần 1, chúng tôi giải thích <strong>bài toán</strong> và <strong>hai thuật toán</strong> mà bài báo đề xuất: NDSD và Local Search.
+- Phần 2, chúng tôi trình bày <strong>kết quả thực nghiệm</strong> — tái hiện lại bằng Python.
+- Phần 3, nhóm <strong>đề xuất cải tiến</strong> ENDSD và ILS — đây là đóng góp riêng, không có trong bài báo gốc.
+- Phần 4, chúng tôi liên hệ với <strong>an ninh di động</strong> — vì bài toán này có tác động trực tiếp đến quyền riêng tư trên thiết bị mobile."</p>
+
+<p><strong>[DẪN]:</strong> "Trước tiên, hãy bắt đầu với câu hỏi: Tại sao ẩn danh hóa lại không an toàn?"</p>
+
+<hr />
+
+<h1>═══════════════════════</h1>
+
+<h1>SLIDE 3 — HOOK (⏱️ 2 phút)</h1>
+
+<h1>═══════════════════════</h1>
+
+<p><strong>[NÓI]:</strong>
+"Hãy tưởng tượng kịch bản sau: Một công ty công nghệ chia sẻ dữ liệu mạng xã hội cho một nhóm nghiên cứu. Họ đã xóa hết tên, email, số điện thoại — tức là đã ẩn danh hóa. Họ tin rằng dữ liệu hoàn toàn an toàn.</p>
+
+<p>Nhưng điều mà bài báo này chứng minh là: chỉ cần <strong>cấu trúc ai-kết-nối-với-ai</strong> — tức là đồ thị quan hệ — ta có thể khôi phục lại danh tính với độ chính xác lên đến gần 100%.</p>
+
+<p>Ý tưởng này không mới. Năm 2009, Narayanan và Shmatikov đã chứng minh điều tương tự tại IEEE S&amp;P. Nhưng bài báo này đi xa hơn: họ <strong>không cần seed nodes</strong>, <strong>không cần thông tin bổ sung</strong> — chỉ thuần túy dùng cấu trúc đồ thị."</p>
+
+<p><strong>[DẪN]:</strong> "Vậy bài toán chính xác được phát biểu như thế nào? Xem slide tiếp."</p>
+
+<hr />
+
+<h1>═══════════════════════</h1>
+
+<h1>SLIDE 4 — MÔ HÌNH (⏱️ 3 phút)</h1>
+
+<h1>═══════════════════════</h1>
+
+<p><strong>[NÓI]:</strong>
+"Bài toán được phát biểu như sau:</p>
+
+<p>Cho hai đồ thị:
+- G là mạng xã hội <strong>có danh tính</strong> — ta biết node nào là ai. G có n nodes.
+- H là mạng xã hội <strong>ẩn danh</strong> — nodes đã bị xáo trộn, ta không biết ai là ai. H có n' nodes, với n' ≤ n.</p>
+
+<p>H được tạo từ G qua 3 bước: Đầu tiên, hoán vị tất cả nodes. Sau đó, xóa đi δ% nodes — gọi là node noise. Cuối cùng, thay đổi ε% cạnh — gọi là edge noise.</p>
+
+<p>Mục tiêu: tìm hàm F, ánh xạ mỗi node trong G đến một node trong H, hoặc đến <strong>dummy node 0</strong> nếu node đó đã bị xóa. Hàm F này được gọi là <strong>pseudobijection</strong>, ký hiệu:</p>
+
+<p><code>F: V(G) → V(H) ∪ {0}</code></p>
+
+<p>Đây là ký hiệu trung tâm của bài báo. Ví dụ: nếu G có 5 nodes và H có 4 nodes, thì có 1 node trong G ánh xạ đến dummy 0 — nghĩa là node đó đã bị xóa khỏi H."</p>
+
+<p><strong>[DẪN]:</strong> "Để đánh giá F tốt hay xấu, bài báo định nghĩa một số ký hiệu quan trọng."</p>
+
+<hr />
+
+<h1>═══════════════════════</h1>
+
+<h1>SLIDE 5 — KÝ HIỆU (⏱️ 2 phút)</h1>
+
+<h1>═══════════════════════</h1>
+
+<p><strong>[NÓI]:</strong>
+"Có 4 ký hiệu quan trọng mà các bạn cần nhớ:</p>
+
+<p>Thứ nhất: <strong>deg_u</strong> — Neighbor Degree Sequence, viết tắt NDS. Đây là dãy bậc của tất cả láng giềng của node u, sắp xếp giảm dần. Ví dụ node u có 3 láng giềng bậc 5, 3, 1 → deg_u = [5, 3, 1].</p>
+
+<p>Thứ hai: <strong>diff(u,v)</strong> — khoảng cách L1 giữa hai NDS. Đây là Equation 1 trong paper. Hai node càng giống nhau thì diff càng nhỏ.</p>
+
+<p>Thứ ba: <strong>adjF(u,v)</strong> — bằng 1 nếu cạnh (u,v) trong G được <strong>bảo toàn</strong> qua mapping F sang H. Nói đơn giản: nếu u và v là bạn trong G, và F(u) với F(v) cũng là bạn trong H → adjF = 1.</p>
+
+<p>Thứ tư: <strong>qualF(u)</strong> — chất lượng ánh xạ node u. Bằng tổng adjF trên tất cả láng giềng. qualF(u) cao nghĩa là phần lớn bạn bè của u trong G đều được khớp đúng trong H."</p>
+
+<p><strong>[DẪN]:</strong> "Giờ xem thuật toán đầu tiên — NDSD — dùng NDS để tìm matching."</p>
+
+<hr />
+
+<h1>═══════════════════════</h1>
+
+<h1>SLIDE 6 — NDSD (⏱️ 3 phút)</h1>
+
+<h1>═══════════════════════</h1>
+
+<p><strong>[NÓI]:</strong>
+"NDSD — Neighbor Degree Sequence Difference — là thuật toán đầu tiên.</p>
+
+<p>Ý tưởng cốt lõi bắt nguồn từ Babai, Erdős và Selkow năm 1980. Họ quan sát rằng trong đồ thị ngẫu nhiên, dãy bậc láng giềng của mỗi node gần như <strong>duy nhất</strong> — tức NDS có thể dùng làm 'chữ ký' cho mỗi node.</p>
+
+<p>Quy trình NDSD gồm 4 bước:
+1. Tính NDS cho mỗi node trong G và H
+2. Thêm n - n' dummy nodes vào H — mỗi dummy có NDS rỗng
+3. Xây ma trận chi phí: C[u][v] = diff(u,v) — khoảng cách L1 giữa NDS
+4. Dùng <strong>Hungarian Algorithm</strong> tìm matching tổng chi phí nhỏ nhất</p>
+
+<p>Node G nào khớp với dummy → F(u) = 0, nghĩa là node đó đã bị xóa.</p>
+
+<p>Độ phức tạp: O(n⁴) — do tính NDS là O(n²) và Hungarian cũng O(n³)."</p>
+
+<p><strong>[DẪN]:</strong> "Xem ví dụ cụ thể từ Figure 1 của bài báo."</p>
+
+<hr />
+
+<h1>═══════════════════════</h1>
+
+<h1>SLIDE 7 — VÍ DỤ (⏱️ 2 phút)</h1>
+
+<h1>═══════════════════════</h1>
+
+<p><strong>[NÓI]:</strong>
+"Đây là ví dụ minh họa dựa trên Figure 1 của bài báo.</p>
+
+<p>G có 5 nodes {1,2,3,4,5}. H có 4 nodes {a,b,c,d}. Vì G nhiều hơn H 1 node, ta thêm 1 dummy node e vào H.</p>
+
+<p>Tính NDS cho từng node, rồi tính diff cho tất cả 25 cặp — ta được ma trận 5×5. Hungarian tìm matching: ví dụ F(1)=a, F(3)=b, F(4)=c, F(5)=d, và F(2)=dummy → node 2 đã bị xóa khỏi H.</p>
+
+<p>Trên slide này các bạn thấy hai đồ thị G và H, với đường nối thể hiện matching."</p>
+
+<p><strong>[DẪN]:</strong> "NDSD cho kết quả khá tốt, nhưng có sai số. Thuật toán thứ 2 — Local Search — sẽ sửa sai."</p>
+
+<hr />
+
+<h1>═══════════════════════</h1>
+
+<h1>SLIDE 8 — LOCAL SEARCH (⏱️ 3 phút)</h1>
+
+<h1>═══════════════════════</h1>
+
+<p><strong>[NÓI]:</strong>
+"Local Search là thuật toán thứ hai — Algorithm 1 trong paper.</p>
+
+<p>Ý tưởng rất đơn giản: bắt đầu từ F₀ do NDSD trả về, rồi thử swap từng cặp node. Nếu swap cải thiện chất lượng → giữ lại.</p>
+
+<p>Cụ thể: với mỗi cặp u₁ và u₂, ta tạo F' bằng cách swap F(u₁) và F(u₂). Rồi kiểm tra điều kiện:</p>
+
+<p><strong>qualF'(u₁) + qualF'(u₂) &gt; qualF(u₁) + qualF(u₂)</strong></p>
+
+<p>Tức là: tổng chất lượng hai node <strong>sau swap phải lớn hơn trước swap</strong>. Nếu đúng → chấp nhận.</p>
+
+<p>Điểm quan trọng: bài báo chứng minh <strong>Theorem 1</strong> — số lần swap tối đa là O(n²). Vì sao? Mỗi swap làm Φ(F) — tổng chất lượng toàn cục — tăng nghiêm ngặt ít nhất 1. Mà Φ(F) ≤ 2|E(G)| = O(n²). Nên tổng số swap ≤ O(n²).</p>
+
+<p>Tổng độ phức tạp: O(n⁵) — mỗi iteration scan O(n²) cặp, tối đa O(n²) iterations, mỗi check O(Δ)."</p>
+
+<p><strong>[DẪN]:</strong> "Hai thuật toán kết hợp thành pipeline — xem tổng quan."</p>
+
+<hr />
+
+<h1>═══════════════════════</h1>
+
+<h1>SLIDE 9 — PIPELINE (⏱️ 1.5 phút)</h1>
+
+<h1>═══════════════════════</h1>
+
+<p><strong>[NÓI]:</strong>
+"Pipeline hoàn chỉnh rất đơn giản:
+- Bước 1: NDSD cho matching ban đầu F₀ — dùng diff, tức NDS distance
+- Bước 2: Local Search cải thiện F₀ thành F — dùng qualF, tức edge preservation</p>
+
+<p>Hai bước bổ sung cho nhau: NDSD nhìn 'giống ai nhất' ở mức cấu trúc tổng thể, còn Local Search kiểm tra 'cạnh nào được bảo toàn' ở mức cục bộ.</p>
+
+<p>Điểm then chốt: Local Search <strong>cần khởi đầu tốt</strong> từ NDSD. Nếu bắt đầu từ matching ngẫu nhiên, Local Search sẽ bị kẹt ở local optimum rất tệ."</p>
+
+<p><strong>[DẪN]:</strong> "Trước khi xem kết quả, hãy hiểu về các mô hình đồ thị được dùng trong thực nghiệm."</p>
+
+<hr />
+
+<h1>═══════════════════════</h1>
+
+<h1>SLIDE 10 — MÔ HÌNH ĐỒ THỊ (⏱️ 2 phút)</h1>
+
+<h1>═══════════════════════</h1>
+
+<p><strong>[NÓI]:</strong>
+"Bài báo thực nghiệm trên 3 mạng xã hội thật và 4 mô hình đồ thị ngẫu nhiên.</p>
+
+<p>Hai mô hình <strong>phù hợp</strong> mạng xã hội:
+- <strong>Barabási-Albert</strong>: tạo đồ thị scale-free với cơ chế 'rich-get-richer' — người nhiều bạn càng dễ có thêm bạn. Phân phối bậc power-law, giống mạng thật.
+- <strong>Holme-Kim</strong>: giống BA nhưng thêm clustering — 'bạn của bạn cũng là bạn'.</p>
+
+<p>Hai mô hình <strong>không phù hợp</strong>:
+- <strong>Erdős-Rényi</strong>: mỗi cạnh xuất hiện ngẫu nhiên với xác suất p. Tất cả nodes 'giống nhau' → NDS không phân biệt được.
+- <strong>Watts-Strogatz</strong>: small-world nhưng bậc đồng đều → cùng vấn đề.</p>
+
+<p>Kết luận quan trọng: hiệu quả thuật toán <strong>phụ thuộc vào cấu trúc mạng</strong>."</p>
+
+<p><strong>[DẪN]:</strong> "Giờ xem kết quả thực nghiệm cụ thể."</p>
+
+<hr />
+
+<h1>═══════════════════════</h1>
+
+<h1>SLIDE 11 — CẤU HÌNH (⏱️ 1 phút)</h1>
+
+<h1>═══════════════════════</h1>
+
+<p><strong>[NÓI]:</strong>
+"Nhóm tái hiện thực nghiệm với 120 nodes, node noise δ = 5%, edge noise từ 0 đến 20%. Mỗi mức noise chạy 3 trials lấy trung bình.</p>
+
+<p>So với bài báo gốc dùng mạng thật hàng ngàn nodes, nhóm dùng quy mô nhỏ hơn để chạy nhanh nhưng vẫn đủ để kiểm chứng xu hướng."</p>
+
+<p><strong>[DẪN]:</strong> "Kết quả bước 1 — chỉ NDSD."</p>
+
+<hr />
+
+<h1>═══════════════════════</h1>
+
+<h1>SLIDE 12 — KẾT QUẢ NDSD (⏱️ 2 phút)</h1>
+
+<h1>═══════════════════════</h1>
+
+<p><strong>[NÓI]:</strong>
+"Bảng này cho thấy accuracy chỉ với NDSD:</p>
+
+<p>BA đạt khoảng 95% khi không noise, giảm xuống 50% ở ε=10%, và 15% ở ε=20%.
+HK tương tự nhưng thấp hơn một chút.</p>
+
+<p>Ngược lại, ER chỉ đạt 15% khi ε=0 và gần 0 khi có noise. WS còn tệ hơn.</p>
+
+<p>Giải thích: BA và HK có phân phối bậc power-law — mỗi node có NDS rất đặc trưng, diff phân biệt tốt. ER và WS có bậc đồng đều — nhiều node cùng NDS → Hungarian khớp sai."</p>
+
+<p><strong>[DẪN]:</strong> "Khi thêm Local Search, kết quả cải thiện đáng kể."</p>
+
+<hr />
+
+<h1>═══════════════════════</h1>
+
+<h1>SLIDE 13 — KẾT QUẢ PIPELINE (⏱️ 2 phút)</h1>
+
+<h1>═══════════════════════</h1>
+
+<p><strong>[NÓI]:</strong>
+"Khi kết hợp NDSD + Local Search:</p>
+
+<p>BA tăng từ 50% lên 80% ở ε=10% — cải thiện 30 điểm phần trăm. HK cũng tương tự.</p>
+
+<p>Nhưng trên ER và WS, cải thiện rất ít — chỉ 3-7 điểm. Lý do: NDSD đã sai quá nhiều → Local Search bắt đầu từ nghiệm quá tệ → bị kẹt ở local optimum.</p>
+
+<p>Kết luận: pipeline NDSD + LS <strong>chịu được noise lên đến 10%</strong> trên mạng scale-free."</p>
+
+<p><strong>[DẪN]:</strong> "Kết quả này có khớp với bài báo gốc không? Xem đối chiếu."</p>
+
+<hr />
+
+<h1>═══════════════════════</h1>
+
+<h1>SLIDE 14 — ĐỐI CHIẾU (⏱️ 1.5 phút)</h1>
+
+<h1>═══════════════════════</h1>
+
+<p><strong>[NÓI]:</strong>
+"Đối chiếu với bài báo gốc — bảng này cho thấy 5 quan sát chính đều <strong>khớp</strong> với kết quả bài báo:
+- BA/HK performance cao ✅
+- ER/WS performance kém ✅
+- Local Search cải thiện đáng kể trên BA/HK ✅
+- Chịu nhiễu ε ≤ 10% ✅
+- Mạng thật có hành vi giống BA/HK — nhóm chưa thử trên mạng thật nhưng bài báo đã chứng minh qua Figure 3.</p>
+
+<p><strong>Kết luận:</strong> Tái hiện thành công. Kết quả <strong>nhất quán</strong> với bài báo gốc."</p>
+
+<p><strong>[DẪN]:</strong> "Tuy nhiên thuật toán gốc có hạn chế. Nhóm đề xuất cải tiến — xem phần tiếp."</p>
+
+<hr />
+
+<h2>TỔNG THỜI GIAN PHẦN 1: ~26 phút</h2>
+
+<table>
+<thead>
+<tr>
+  <th>Nhóm slide</th>
+  <th>Thời gian</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Mở đầu (1-3)</td>
+  <td>~3.5 phút</td>
+</tr>
+<tr>
+  <td>Lý thuyết (4-9)</td>
+  <td>~14.5 phút</td>
+</tr>
+<tr>
+  <td>Thực nghiệm (10-14)</td>
+  <td>~8.5 phút</td>
+</tr>
+</tbody>
+</table>
+
+<p><em>→ Tiếp phần 2 trong <code>presentation-script-part2.md</code></em></p>
+
+</body>
+</html>

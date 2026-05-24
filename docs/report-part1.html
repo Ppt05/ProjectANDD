@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>report-part1</title>
+    <style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+body {
+    font-family: 'Inter', sans-serif;
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 0 20px;
+    line-height: 1.7;
+    color: #E8E8E8;
+    background: #0D1117;
+}
+h1 { color: #E63946; border-bottom: 2px solid #E63946; padding-bottom: 8px; font-size: 1.8em; }
+h2 { color: #F4A261; margin-top: 2em; font-size: 1.4em; }
+h3 { color: #E8E8E8; font-size: 1.15em; }
+h4 { color: #8B949E; }
+table { border-collapse: collapse; width: 100%; margin: 16px 0; }
+th { background: #161B22; color: #F4A261; padding: 10px 14px; text-align: left; border: 1px solid #30363D; }
+td { padding: 8px 14px; border: 1px solid #30363D; }
+tr:nth-child(even) { background: #161B22; }
+code { background: #161B22; color: #F4A261; padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+pre { background: #161B22; padding: 16px; border-radius: 8px; overflow-x: auto; border: 1px solid #30363D; }
+pre code { background: none; padding: 0; }
+blockquote { border-left: 4px solid #E63946; margin: 16px 0; padding: 8px 16px; background: #161B22; border-radius: 0 8px 8px 0; }
+strong { color: #F4A261; }
+a { color: #58A6FF; }
+hr { border: none; border-top: 1px solid #30363D; margin: 2em 0; }
+@media print {
+    body { background: white; color: #1a1a1a; }
+    h1 { color: #c0392b; border-color: #c0392b; }
+    h2 { color: #d35400; }
+    th { background: #f0f0f0; color: #333; }
+    pre, code { background: #f5f5f5; }
+    blockquote { background: #f9f9f9; }
+    strong { color: #c0392b; }
+}
+</style>
+</head>
+<body>
+<h1>BÁO CÁO MIDTERM — MÔN AN NINH DI ĐỘNG</h1>
+
+<h1>Đề tài: Phi Ẩn Danh Hóa Mạng Xã Hội Sử Dụng Thông Tin Cấu Trúc</h1>
+
+<h1>Bài báo: "Deanonymizing Social Networks Using Structural Information" — IJCAI-2019</h1>
+
+<h1>Tác giả bài báo: Ioannis Caragiannis &amp; Evi Tsitsoka — Đại học Patras, Hy Lạp</h1>
+
+<hr />
+
+<p><strong>Môn học:</strong> An Ninh Di Động
+<strong>Giảng viên:</strong> TS. Lê Thị Hợi
+<strong>Nhóm:</strong> [Điền tên nhóm]
+<strong>Thành viên:</strong> [Điền tên các thành viên]</p>
+
+<hr />
+
+<h1>MỤC LỤC</h1>
+
+<ol>
+<li>Giới thiệu</li>
+<li>Cơ sở lý thuyết</li>
+<li>Thuật toán đề xuất trong bài báo</li>
+<li>Mô hình đồ thị thực nghiệm</li>
+<li>Thực nghiệm và kết quả <em>(Phần 2)</em></li>
+<li>Đề xuất cải tiến <em>(Phần 2)</em></li>
+<li>Liên hệ an ninh di động <em>(Phần 2)</em></li>
+<li>Kết luận <em>(Phần 2)</em></li>
+<li>Tài liệu tham khảo <em>(Phần 2)</em></li>
+</ol>
+
+<hr />
+
+<h2>1. GIỚI THIỆU</h2>
+
+<h3>1.1 Bối cảnh</h3>
+
+<p>Trong kỷ nguyên số, các mạng xã hội (Facebook, Twitter, LinkedIn) lưu trữ lượng thông tin khổng lồ về quan hệ giữa người dùng. Để bảo vệ quyền riêng tư, các tổ chức thường <strong>ẩn danh hóa</strong> (anonymize) dữ liệu trước khi chia sẻ cho bên thứ ba — tức là xóa đi các thông tin định danh trực tiếp như tên, ID, email.</p>
+
+<p>Tuy nhiên, việc xóa nhãn danh tính <strong>không đồng nghĩa</strong> với việc bảo vệ quyền riêng tư. Lý do: <strong>cấu trúc quan hệ</strong> (topology) giữa các node trong mạng vẫn được giữ nguyên, và bản thân cấu trúc này chứa đủ thông tin để khôi phục lại danh tính.</p>
+
+<h3>1.2 Tiền đề nghiên cứu</h3>
+
+<p>Nghiên cứu về phi ẩn danh hóa mạng xã hội trở nên phổ biến từ công trình tiên phong của <strong>Narayanan và Shmatikov (2009)</strong> tại hội nghị IEEE S&amp;P. Họ chứng minh rằng việc ẩn danh hóa dữ liệu mạng xã hội thông thường có thể bị <strong>vi phạm nghiêm trọng</strong> bằng cách khai thác cấu trúc đồ thị.</p>
+
+<p>Một hướng nghiên cứu khác là của <strong>Backstrom et al. (2007)</strong>, giả định kẻ tấn công có thể sửa đổi mạng trước khi nó được phát hành (sybil attack). Cách tiếp cận của bài báo này <strong>khác hoàn toàn</strong> — không cần sybil nodes, không cần seed nodes, chỉ dùng <strong>thông tin cấu trúc thuần túy</strong>.</p>
+
+<p>Về mặt lý thuyết, bài toán liên quan mật thiết đến <strong>Graph Isomorphism</strong> — bài toán đã nhận được nhiều sự chú ý nhờ kết quả đột phá của <strong>Babai (2016)</strong> đạt thời gian quasi-polynomial. Tuy nhiên, trong thực tế, hai mạng xã hội không bao giờ giống nhau hoàn toàn, nên cần giải <strong>phiên bản tối ưu hóa</strong> của graph isomorphism.</p>
+
+<h3>1.3 Câu hỏi nghiên cứu</h3>
+
+<blockquote>
+  <p><strong>"Liệu có thể khôi phục danh tính người dùng trong mạng ẩn danh chỉ bằng cấu trúc đồ thị, khi mạng bị nhiễu (xóa node, thay đổi cạnh)?"</strong></p>
+</blockquote>
+
+<p>Bài báo trả lời câu hỏi này bằng hai thuật toán:
+1. <strong>NDSD</strong> — khai thác ý tưởng từ Babai et al. (1980) về dãy bậc láng giềng
+2. <strong>Local Search</strong> — cải thiện kết quả bằng hoán đổi cục bộ, với phân tích formal về thời gian chạy</p>
+
+<hr />
+
+<h2>2. CƠ SỞ LÝ THUYẾT</h2>
+
+<h3>2.1 Định nghĩa bài toán</h3>
+
+<p>Cho hai đồ thị:
+- <strong>G</strong>: Đồ thị có danh tính (eponymous social network) — n node được đánh số [1..n]
+- <strong>H</strong>: Đồ thị ẩn danh (anonymous social network) — n' node, với n' ≤ n</p>
+
+<p>Định nghĩa hàm <strong>pseudobijection</strong> <code>F: V(G) → V(H) ∪ {0}</code>:
+- Mỗi node u ∈ V(G) được ánh xạ đến <strong>một node duy nhất</strong> trong V(H) hoặc <strong>dummy node 0</strong>
+- Với mỗi node v ∈ V(H), <strong>tồn tại đúng một</strong> node u ∈ V(G) sao cho F(u) = v
+- Có <code>n - n'</code> nodes của G được ánh xạ đến dummy node 0 (nodes đã bị xóa khỏi H)</p>
+
+<h3>2.2 Quá trình tạo đồ thị ẩn danh</h3>
+
+<p>Đồ thị H được tạo từ G qua 3 bước:
+1. <strong>Bước 1:</strong> Áp dụng một hoán vị (permutation) lên các node của G
+2. <strong>Bước 2:</strong> Xóa một số node (node noise δ — tỷ lệ nodes bị xóa)
+3. <strong>Bước 3:</strong> Thay đổi một số cạnh (edge noise ε — xác suất mỗi cặp node bị đổi trạng thái cạnh)</p>
+
+<p>Quá trình này định nghĩa một pseudobijection thực sự <strong>F*: V(G) → V(H) ∪ {0}</strong> (ground truth).</p>
+
+<h3>2.3 Hàm mục tiêu</h3>
+
+<p>Mục tiêu của bài toán là: cho G và H, tìm pseudobijection F <strong>khôi phục F* chính xác nhất</strong>. Performance được đo bằng:</p>
+
+<pre><code>Performance(F) = Σ_{u∈V(G)} 𝟙{F*(u) ≠ 0 và F(u) = F*(u)}
+</code></pre>
+
+<p>Tức là: đếm số node u mà:
+- u <strong>có mặt</strong> trong H (F*(u) ≠ 0)
+- Thuật toán khớp <strong>đúng</strong> u (F(u) = F*(u))</p>
+
+<h3>2.4 Ký hiệu</h3>
+
+<table>
+<thead>
+<tr>
+  <th>Ký hiệu</th>
+  <th>Định nghĩa</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>V(G), E(G)</td>
+  <td>Tập node và tập cạnh của đồ thị G</td>
+</tr>
+<tr>
+  <td>n = |V(G)|, n' = |V(H)|</td>
+  <td>Số node của G và H</td>
+</tr>
+<tr>
+  <td>F: V(G) → V(H) ∪ {0}</td>
+  <td>Pseudobijection</td>
+</tr>
+<tr>
+  <td>F*</td>
+  <td>Pseudobijection ground truth</td>
+</tr>
+<tr>
+  <td>deg_u</td>
+  <td><strong>Neighbor Degree Sequence (NDS)</strong> của node u — dãy bậc các láng giềng, sắp giảm dần</td>
+</tr>
+<tr>
+  <td>diff(u,v)</td>
+  <td>Khoảng cách L1 giữa hai NDS (Equation 1 trong paper)</td>
+</tr>
+<tr>
+  <td>adjF(u,v)</td>
+  <td>= 1 nếu (u,v) ∈ E(G) <strong>và</strong> (F(u),F(v)) ∈ E(H); = 0 nếu ngược lại</td>
+</tr>
+<tr>
+  <td>qualF(u)</td>
+  <td>= Σ_{v∈N_G(u)} adjF(u,v) — <strong>chất lượng</strong> node u trong mapping F</td>
+</tr>
+<tr>
+  <td>Φ(F)</td>
+  <td>= Σ_{u∈V(G)} qualF(u) — <strong>tổng chất lượng</strong> toàn cục</td>
+</tr>
+<tr>
+  <td>δ</td>
+  <td>Node noise — tỷ lệ node bị xóa (0 ≤ δ ≤ 0.20)</td>
+</tr>
+<tr>
+  <td>ε</td>
+  <td>Edge noise — xác suất đổi trạng thái cạnh (0 ≤ ε ≤ 0.10)</td>
+</tr>
+</tbody>
+</table>
+
+<h3>2.5 Độ khó tính toán</h3>
+
+<p>Khi δ = 0 và ε = 0, bài toán trở thành <strong>Graph Isomorphism</strong> — bài toán nổi tiếng trong lý thuyết độ phức tạp. Babai (2016) đã chứng minh Graph Isomorphism nằm trong thời gian quasi-polynomial (<code>exp(polylog(n))</code>). Trong thực tế, bài toán này được giải hiệu quả bởi các công cụ như nauty (McKay và Piperno, 2014).</p>
+
+<p>Tuy nhiên, phiên bản tối ưu hóa (maximize edge matches) là <strong>NP-khó</strong> trong trường hợp tổng quát. Do đó, bài báo thiết kế các <strong>heuristic hiệu quả</strong> thay vì thuật toán chính xác.</p>
+
+<hr />
+
+<h2>3. THUẬT TOÁN ĐỀ XUẤT TRONG BÀI BÁO</h2>
+
+<h3>3.0 Khái niệm nền tảng: Pseudobijection và Dummy Nodes</h3>
+
+<p>Bài báo định nghĩa ánh xạ <strong>F: V(G) → V(H) ∪ {0}</strong> gọi là <strong>pseudobijection</strong>:
+- Mỗi node u ∈ V(G) được ánh xạ đến một node <strong>duy nhất</strong> trong V(H) hoặc <strong>dummy node 0</strong>
+- Với mỗi node v ∈ V(H), tồn tại <strong>đúng một</strong> u ∈ V(G) sao cho F(u) = v
+- Chính xác <code>n - n'</code> node của G sẽ ánh xạ đến 0</p>
+
+<p><strong>Ý nghĩa thực tế:</strong> Nếu |V(G)| = 5 và |V(H)| = 4, ta thêm <strong>1 dummy node</strong> vào H. Khi tìm matching, node G nào khớp với dummy → node đó đã bị xóa khỏi H.</p>
+
+<h3>3.1 Thuật toán NDSD (Neighbor Degree Sequence Difference)</h3>
+
+<h4>3.1.1 Ý tưởng cốt lõi — NDS từ Babai et al. (1980)</h4>
+
+<p>Babai et al. (1980) quan sát rằng với đồ thị Erdős-Rényi G_{n,1/2}, <strong>dãy bậc các láng giềng</strong> (Neighbor Degree Sequence) của mỗi node là <strong>duy nhất với xác suất cao</strong>. Tính chất này mở rộng cho các giá trị p khác (Bollobás 2001, Czajka và Pandurangan 2008).</p>
+
+<p><strong>Neighbor Degree Sequence (NDS)</strong> của node u:</p>
+
+<pre><code>deg_u = (d₁, d₂, ..., d_k)  với d₁ ≥ d₂ ≥ ... ≥ d_k
+</code></pre>
+
+<p>Trong đó d_i là bậc (degree) của láng giềng thứ i của u, sắp xếp <strong>giảm dần</strong>.</p>
+
+<h4>3.1.2 Khoảng cách diff (Equation 1)</h4>
+
+<p>Cho hai node u ∈ V(G) và v ∈ V(H), khoảng cách NDS được định nghĩa:</p>
+
+<pre><code>diff(u, v) = Σ_{i=1}^{max(|deg_u|, |deg_v|)} |deg_u(i) - deg_v(i)|    (Eq. 1)
+</code></pre>
+
+<p>Nếu hai dãy có độ dài khác nhau, dãy ngắn hơn được đệm thêm số 0.</p>
+
+<h4>3.1.3 Quy trình NDSD</h4>
+
+<ol>
+<li><strong>Tính NDS</strong> cho mỗi node trong G và H</li>
+<li><strong>Thêm dummy nodes:</strong> Thêm <code>n - n'</code> dummy nodes vào H. Mỗi dummy node có deg = [] (dãy rỗng), nên diff(u, dummy) = Σ deg_u(i)</li>
+<li><strong>Xây cost matrix:</strong> Ma trận C kích thước n×n, với C[u][v] = diff(u, v)</li>
+<li><strong>Hungarian Algorithm:</strong> Tìm perfect matching tối thiểu hóa tổng cost</li>
+<li><strong>Kết quả:</strong> Node G khớp với dummy → F(u) = 0; khớp với v ∈ V(H) → F(u) = v</li>
+</ol>
+
+<h4>3.1.4 Ví dụ minh họa (dựa trên Figure 1 của bài báo)</h4>
+
+<p>Giả sử G có 5 nodes {1,2,3,4,5} và H có 4 nodes {a,b,c,d}:
+- Ta thêm <strong>1 dummy node e</strong> vào H → H' = {a,b,c,d,e}
+- Tính diff cho mọi cặp (u∈G, v∈H') → ma trận 5×5
+- Hungarian tìm matching tối ưu
+- Nếu node 2 khớp với dummy e → F(2) = 0 (node 2 đã bị xóa khỏi H)</p>
+
+<h4>3.1.5 Độ phức tạp</h4>
+
+<table>
+<thead>
+<tr>
+  <th>Bước</th>
+  <th>Phức tạp</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Tính NDS cho n nodes</td>
+  <td>O(n × Δ) ≈ O(n²)</td>
+</tr>
+<tr>
+  <td>Tính diff cho n² cặp</td>
+  <td>O(n² × Δ) ≈ O(n³)</td>
+</tr>
+<tr>
+  <td>Hungarian Algorithm</td>
+  <td>O(n³)</td>
+</tr>
+<tr>
+  <td><strong>Tổng</strong></td>
+  <td><strong>O(n³)</strong></td>
+</tr>
+</tbody>
+</table>
+
+<p><em>Ghi chú: Bài báo ghi O(n⁴) vì xét worst-case khi Δ ≈ n.</em></p>
+
+<h3>3.2 Thuật toán Local Search (Algorithm 1)</h3>
+
+<h4>3.2.1 Ý tưởng</h4>
+
+<p>Sau khi NDSD cho kết quả ban đầu F₀, Local Search <strong>cải thiện</strong> bằng cách thử hoán đổi (swap) từng cặp node. Nếu swap cải thiện chất lượng → chấp nhận.</p>
+
+<h4>3.2.2 Các hàm đánh giá</h4>
+
+<p><strong>adjF(u, v):</strong> Kiểm tra cạnh có được bảo toàn qua mapping F hay không</p>
+
+<pre><code>adjF(u, v) = 1  nếu (u,v) ∈ E(G) VÀ (F(u), F(v)) ∈ E(H)
+           = 0  nếu ngược lại
+</code></pre>
+
+<p><strong>qualF(u):</strong> Chất lượng ánh xạ của node u — đếm số láng giềng trong G mà cạnh được bảo toàn trong H</p>
+
+<pre><code>qualF(u) = Σ_{v ∈ N_G(u)} adjF(u, v)
+</code></pre>
+
+<p><strong>Φ(F):</strong> Tổng chất lượng toàn cục</p>
+
+<pre><code>Φ(F) = Σ_{u ∈ V(G)} qualF(u)
+</code></pre>
+
+<h4>3.2.3 Algorithm 1 — Pseudocode chính xác từ bài báo</h4>
+
+<pre><code>Algorithm 1: Local Search
+─────────────────────────
+Input: Đồ thị G, H; pseudobijection ban đầu F₀
+F ← F₀
+
+repeat
+  improved ← false
+  for each u₁ ∈ V(G) do
+    for each u₂ ∈ V(G), u₂ ≠ u₁ do
+      Đặt F' = F nhưng swap: F'(u₁) = F(u₂), F'(u₂) = F(u₁)
+
+      if qualF'(u₁) + qualF'(u₂) &gt; qualF(u₁) + qualF(u₂) then
+        F ← F'
+        improved ← true
+      end if
+    end for
+  end for
+until improved = false
+
+Output: Pseudobijection F
+</code></pre>
+
+<p><strong>Điều kiện swap:</strong> Chấp nhận nếu <strong>tổng chất lượng hai node</strong> sau swap <strong>tăng nghiêm ngặt</strong>:</p>
+
+<pre><code>qualF'(u₁) + qualF'(u₂) &gt; qualF(u₁) + qualF(u₂)
+</code></pre>
+
+<h4>3.2.4 Theorem 1 — Giới hạn số iterations</h4>
+
+<blockquote>
+  <p><strong>Theorem 1 (Caragiannis &amp; Tsitsoka, 2019):</strong>
+  Algorithm 1 thực hiện tối đa <strong>O(n²)</strong> swap operations.</p>
+</blockquote>
+
+<p><strong>Chứng minh (sketch):</strong>
+- Mỗi swap được chấp nhận làm <strong>Φ(F) tăng nghiêm ngặt</strong> ít nhất 1 đơn vị
+- Φ(F) ≤ 2|E(G)| (vì mỗi cạnh đóng góp tối đa 2 vào Φ — mỗi đầu 1)
+- |E(G)| ≤ n(n-1)/2 = O(n²)
+- Vậy số lần swap ≤ O(n²) ∎</p>
+
+<h4>3.2.5 Độ phức tạp</h4>
+
+<table>
+<thead>
+<tr>
+  <th>Thành phần</th>
+  <th>Phức tạp</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Mỗi iteration: scan O(n²) cặp</td>
+  <td>O(n²)</td>
+</tr>
+<tr>
+  <td>Mỗi swap check: tính qualF'</td>
+  <td>O(Δ) — xét láng giềng</td>
+</tr>
+<tr>
+  <td>Số iterations tối đa (Theorem 1)</td>
+  <td>O(n²)</td>
+</tr>
+<tr>
+  <td><strong>Tổng</strong></td>
+  <td><strong>O(n⁴ × Δ) ≈ O(n⁵)</strong></td>
+</tr>
+</tbody>
+</table>
+
+<h3>3.3 Pipeline kết hợp: NDSD → Local Search</h3>
+
+<pre><code>Input: G (eponymous), H (anonymous)
+         │
+         ▼
+┌─────────────────────┐
+│ Bước 1: NDSD        │  Tính NDS, cost matrix, Hungarian
+│ Kết quả: F₀         │  Matching ban đầu (O(n⁴))
+└────────┬────────────┘
+         │
+         ▼
+┌─────────────────────┐
+│ Bước 2: Local Search│  Swap cặp node nếu qualF tăng
+│ Cải tiến: F₀ → F    │  Lặp đến convergence (O(n⁵))
+└────────┬────────────┘
+         │
+         ▼
+Output: F — pseudobijection tối ưu
+</code></pre>
+
+<p><strong>Tại sao kết hợp?</strong>
+- NDSD cho kết quả khá tốt nhưng có sai số do nhiễu
+- Local Search bắt đầu từ nghiệm tốt (F₀ từ NDSD) → sửa sai hiệu quả
+- Nếu bắt đầu từ nghiệm ngẫu nhiên → Local Search bị kẹt local optimum</p>
+
+<hr />
+
+<h2>4. MÔ HÌNH ĐỒ THỊ THỰC NGHIỆM</h2>
+
+<p>Bài báo thực nghiệm trên cả <strong>mạng xã hội thật</strong> và <strong>đồ thị ngẫu nhiên</strong>.</p>
+
+<h3>4.1 Mạng xã hội thật</h3>
+
+<table>
+<thead>
+<tr>
+  <th>Mạng</th>
+  <th>Nguồn</th>
+  <th>Số nodes</th>
+  <th>Mô tả</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>ego-Facebook</td>
+  <td>SNAP (Leskovec &amp; Krevl, 2014)</td>
+  <td>4,039</td>
+  <td>Mạng bạn bè Facebook</td>
+</tr>
+<tr>
+  <td>Amherst41</td>
+  <td>Network Repository (Rossi &amp; Ahmed, 2015)</td>
+  <td>2,235</td>
+  <td>Mạng sinh viên Amherst College</td>
+</tr>
+<tr>
+  <td>Wellesley22</td>
+  <td>Network Repository</td>
+  <td>2,970</td>
+  <td>Mạng sinh viên Wellesley College</td>
+</tr>
+</tbody>
+</table>
+
+<h3>4.2 Mô hình đồ thị ngẫu nhiên</h3>
+
+<table>
+<thead>
+<tr>
+  <th>Mô hình</th>
+  <th>Đặc trưng</th>
+  <th>Phù hợp MXH?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><strong>Erdős-Rényi (ER)</strong></td>
+  <td>Mỗi cạnh xuất hiện với xác suất p; phân phối bậc đồng đều</td>
+  <td>❌ Không — thiếu hub, thiếu clustering</td>
+</tr>
+<tr>
+  <td><strong>Watts-Strogatz (WS)</strong></td>
+  <td>Small-world: đường kính nhỏ, clustering cao</td>
+  <td>❌ Không — phân phối bậc đồng đều</td>
+</tr>
+<tr>
+  <td><strong>Barabási-Albert (BA)</strong></td>
+  <td>Scale-free: "rich-get-richer", phân phối bậc power-law</td>
+  <td>✅ Có — mô phỏng tốt hub/influencer</td>
+</tr>
+<tr>
+  <td><strong>Holme-Kim (HK)</strong></td>
+  <td>BA + clustering cao (triad formation)</td>
+  <td>✅ Có — BA + "bạn chung"</td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>Tại sao BA và HK phù hợp?</strong>
+- Mạng xã hội thật có <strong>phân phối bậc power-law</strong> (nhiều người ít bạn, ít người nhiều bạn)
+- BA tạo ra tính chất này qua cơ chế <strong>preferential attachment</strong> (Barabási &amp; Albert, 1999)
+- HK bổ sung <strong>clustering</strong> (Holme &amp; Kim, 2002) — trong MXH thật, "bạn của bạn thường cũng là bạn"</p>
+
+<p><strong>Tại sao ER và WS không phù hợp?</strong>
+- ER: Phân phối bậc Poisson → tất cả nodes "giống nhau" → NDS không phân biệt được
+- WS: Bậc gần đồng đều → cùng vấn đề</p>
+
+<p><em>→ Tiếp tục Chương 5-9 trong <code>report-part2.md</code></em></p>
+
+</body>
+</html>
